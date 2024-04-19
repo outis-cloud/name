@@ -1,2 +1,2 @@
 # DNS-Management
-A Ccript For Dns Server Manager
+A Script For Dns Server Manager
