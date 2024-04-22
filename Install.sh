@@ -79,8 +79,7 @@ case ${release} in
 esac
 }
 
-
-
+install-depend
 
 
 
