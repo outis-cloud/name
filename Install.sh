@@ -66,7 +66,7 @@ yum install bind bind-utils git -y
 
 
 install-depend(){
-case ${releass}
+case ${release}
 	centos)
 		install-centos
 		;;
