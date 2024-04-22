@@ -45,6 +45,46 @@ echo "The OS release is  $release "
 
 
 
+if [[ ${releass} == "centos" ]]; then
+	echo -e " ${green} You use centos \n" 
+
+elif [[ ${releass} == "ubuntu"]]; then
+	echo -e "${green} You use ubuntu \n"
+else 
+       echo -e " ${red} Failed to check Os. Your Os System not Supported " && exit 1
+fi
+
+install-ubuntu() {
+apt update  -y
+apt install bind9 bind9utils git bind9-doc -y 
+}
+
+install-centos(){
+yum update -y
+yum install bind bind-utils git -y
+}
+
+
+install-depend(){
+case ${releass}
+	centos)
+		install-centos
+		;;
+	ubuntu) 
+		install-ubuntu
+		;;
+	*) 
+		echo -e " Invalid choice. Please try again."
+		;;
+esac
+}
+
+
+
+
+
+
+
 
 
 
