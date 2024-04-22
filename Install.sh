@@ -66,7 +66,7 @@ yum install bind bind-utils git -y
 
 
 install-depend(){
-case ${release} in 
+case "${release}" in 
 	centos)
 		install-centos
 		;;
@@ -79,7 +79,6 @@ case ${release} in
 esac
 }
 
-install-depend
 
 
 
