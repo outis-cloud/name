@@ -65,7 +65,6 @@ yum install bind bind-utils git -y
 }
 
 
-install-depend(){
 case "${release}" in 
 	centos)
 		install-centos
@@ -74,10 +73,9 @@ case "${release}" in
 		install-ubuntu
 		;;
 	*) 
-		echo -e " Invalid choice. Please try again."
+		echo " Invalid choice. Please try again."
 		;;
 esac
-}
 
 
 
