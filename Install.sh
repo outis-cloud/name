@@ -48,7 +48,7 @@ echo "The OS release is  $release "
 if [[ ${releass} == "centos" ]]; then
 	echo -e " ${green} You use centos \n" 
 
-elif [[ ${releass} == "ubuntu"]]; then
+elif [[ ${releass} == "ubuntu" ]]; then
 	echo -e "${green} You use ubuntu \n"
 else 
        echo -e " ${red} Failed to check Os. Your Os System not Supported " && exit 1
