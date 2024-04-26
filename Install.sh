@@ -46,7 +46,9 @@ fi
 
 
 if [[ "${release}" == "centos" ]]; then
+	install_dep
 elif [[ "${release}" == "ubuntu" ]]; then
+	install_dep
 else 
       echo -e " ${red} Failed to check Os. Your Os System not Supported " && exit 1
 fi
@@ -64,7 +66,7 @@ yum install bind bind-utils git -y
 }
 
 
-install-depend(){
+install_dep(){
 case "${release}" in 
 	centos)
 		centos
