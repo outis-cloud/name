@@ -84,8 +84,11 @@ finish() {
 
 
  nameserver() {
-	 read -p "${yellow} Please Enter Domains Name:" $domain        
-	 read -p "${yellow} Please Enter Your Ip server:" $ip
+	 clear 
+	 sleep 1
+	 echo "+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=\n" | lolcat -s 2
+	 read -p " Please Enter Domains Name:\n" $domain        
+	 read -p " Please Enter Your Ip server:\n" $ip
 	 
 	 if [ -z  "$domain" ] && [ -z "$ip" ]; then
         	echo "Please A domain Real And Ip server "
