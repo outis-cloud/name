@@ -45,17 +45,14 @@ else
 fi
 
 
-if [[ "${release}" == "centos" ]]; then
-	centos
-else -e " ${red} Failed to check Os. Your Os System not Supported " && exit 1
-
+#if [[ "${release}" != "centos" ]]; then
+#	exit 1
+if [[ "${release}" != "ubuntu" ]]; then
+	exit 1
+#else 
+#       echo -e " ${red} Failed to check Os. Your Os System not Supported " && exit 1
 fi
-
-if [[ "${release}" == "ubuntu" ]]; then
-	ubuntu
-else 
-       echo -e " ${red} Failed to check Os. Your Os System not Supported " && exit 1
-fi
+ubuntu
 
 ubuntu()
 {
