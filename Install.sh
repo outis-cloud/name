@@ -88,9 +88,9 @@ finish() {
 	 sleep 1
 	 echo "+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=\n" | lolcat -s 2
 	 echo -e " \n" 
-	 read -p " Please Enter Domains Name:" $domain        
+	 read -p " Please Enter Domains Name:" domain        
 	 echo -e " \n"
-	 read -p " Please Enter Your Ip server:" $ip
+	 read -p " Please Enter Your Ip server:" ip
 	 
 	 if [ -n  "$domain" ] && [ -n "$ip" ]; then
                filedb
