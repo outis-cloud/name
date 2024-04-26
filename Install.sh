@@ -87,8 +87,10 @@ finish() {
 	 clear 
 	 sleep 1
 	 echo "+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=\n" | lolcat -s 2
-	 read -p " Please Enter Domains Name:\n" $domain        
-	 read -p " Please Enter Your Ip server:\n" $ip
+	 echo -e " \n" 
+	 read -p " Please Enter Domains Name:" $domain        
+	 echo -e " \n"
+	 read -p " Please Enter Your Ip server:" $ip
 	 
 	 if [ -z  "$domain" ] && [ -z "$ip" ]; then
         	echo "Please A domain Real And Ip server "
