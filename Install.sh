@@ -50,7 +50,6 @@ ubuntu() {
 	apt update  -y
 	apt install bind9 bind9utils git bind9-doc lolcat figlet  -y 
 	nameserver
-
 }
 
 centos() {
@@ -69,20 +68,19 @@ fi
 
 
 
-install_dep() {
-case "${release}" in 
-	centos)
-		centos
-		;;
-	ubuntu) 
-		ubuntu
-		nameserver
-		;;
-	*) 
-		echo " Failed to check the OS version"
-		exit 1;;
-esac
-}
+#install_dep() {
+#case "${release}" in 
+#	centos)
+#		centos
+#		;;
+#	ubuntu) 
+#		ubuntu
+#		;;
+#	*) 
+#		echo " Failed to check the OS version"
+#		exit 1;;
+#esac
+#}
 
 
 sleep 1
