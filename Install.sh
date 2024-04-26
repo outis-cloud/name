@@ -45,23 +45,20 @@ else
 fi
 
 
-#if [[ "${release}" != "centos" ]]; then
-#	exit 1
-if [[ "${release}" != "ubuntu" ]]; then
-	exit 1
-#else 
-#       echo -e " ${red} Failed to check Os. Your Os System not Supported " && exit 1
+if [[ "${release}" == "centos" ]]; then
+elif [[ "${release}" == "ubuntu" ]]; then
+else 
+      echo -e " ${red} Failed to check Os. Your Os System not Supported " && exit 1
 fi
-ubu
 
-ubu(){
+ubuntu(){
 apt update  -y
 apt install bind9 bind9utils git bind9-doc lolcat figlet  -y 
 nameserver
 
 }
 
-cent(){
+centos(){
 yum update -y
 yum install bind bind-utils git -y
 }
@@ -70,10 +67,11 @@ yum install bind bind-utils git -y
 install-depend(){
 case "${release}" in 
 	centos)
-		install-centos
+		centos
 		;;
 	ubuntu) 
-		install-ubuntu
+		ubuntu
+		nameserver
 		;;
 	*) 
 		echo " Failed to check the OS version"
