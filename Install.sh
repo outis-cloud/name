@@ -20,7 +20,9 @@ rest='\033[0m'
 plain='\033[0m'
 
 
-
+finish
+sleep 2 
+exit 1
 
 #check root 
 
