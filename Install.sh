@@ -49,24 +49,25 @@ if [[ "${release}" == "centos" ]]; then
 	echo "vvvvvvvvvv"
 elif [[ "${release}" == "ubuntu" ]]; then
 	echo "tttttttttttt" 
+	ubuntu
 else 
       echo -e " ${red} Failed to check Os. Your Os System not Supported " && exit 1
 fi
 
-ubuntu(){
+ubuntu() {
 apt update  -y
 apt install bind9 bind9utils git bind9-doc lolcat figlet  -y 
 nameserver
 
 }
 
-centos(){
+centos() {
 yum update -y
 yum install bind bind-utils git -y
 }
 
 
-install_dep(){
+install_dep() {
 case "${release}" in 
 	centos)
 		centos
@@ -84,7 +85,7 @@ esac
 
 sleep 1
 
-nameserver(){
+nameserver() { 
 
 read -p "${yellow} Please Enter Domains Name:" $domain
 read -p "${yellow} Please Enter Your Ip server:" $ip
@@ -98,7 +99,7 @@ else
 fi
 }
 
-filedb(){
+filedb() {
 	cd /etc/bind/
 	touch $domain.db
 	cat <<EOL > $domain.db
@@ -133,7 +134,7 @@ EOL
 }
 
 
-changenameserver(){
+changenameserver() {
 	cd /etc/bind/
 	touch $domain.db
 	echo -e "zone "$domain" { type master; file "/etc/bind/$domain.db"; };" >> named.conf
@@ -142,7 +143,7 @@ changenameserver(){
 
 
 
-finish(){
+finish() {
 	echo -e " "
 	echo -e " "
 	echo -e " "
