@@ -47,9 +47,10 @@ echo "The OS release is  $release "
 
 if [[ "${release}" == "centos" ]]; then
 	echo -e " ${green} You use centos \n" 
-
+	install-centos
 elif [[ "${release}" == "ubuntu" ]]; then
 	echo -e "${green} You use ubuntu \n"
+	install-ubuntu
 else 
        echo -e " ${red} Failed to check Os. Your Os System not Supported " && exit 1
 fi
