@@ -20,6 +20,32 @@ rest='\033[0m'
 plain='\033[0m'
 
 
+
+
+
+
+finish() {
+	echo -e " "
+	echo -e " "
+	echo -e " "
+	echo -e " "
+	echo -e "Now Finish Nameservers :\n "
+	echo -e  "ns1.$domain \t $ip  \nns2.$domain \t $ip " |lolcat -as 100
+ }
+	 
+
+
+
+
+
+
+
+
+
+
+
+
+
 finish
 sleep 2 
 exit 1
@@ -153,7 +179,6 @@ finish() {
 	echo -e "Now Finish Nameservers :\n "
 	echo -e  "ns1.$domain \t $ip  \nns2.$domain \t $ip " |lolcat -as 100
 }
-
 
 
 
