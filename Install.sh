@@ -29,6 +29,12 @@ plain='\033[0m'
 
 # check OS 
 
+
+ubunutos(){
+
+
+}
+
 if [[ -f /etc/os-release ]]; then 
 	source /etc/os-release
 	release=$ID
@@ -46,21 +52,21 @@ echo "The OS release is  $release "
 
 
 if [[ "${release}" == "centos" ]]; then
-	installcentos
+	install_centos
 elif [[ "${release}" == "ubuntu" ]]; then
-	installubuntu
+	install_ubuntu
 else 
        echo -e " ${red} Failed to check Os. Your Os System not Supported " && exit 1
 fi
 
-installubuntu() {
+install_ubuntu() {
 apt update  -y
 apt install bind9 bind9utils git bind9-doc lolcat figlet  -y 
 nameserver
 
 }
 
-installcentos(){
+install_centos(){
 yum update -y
 yum install bind bind-utils git -y
 }
