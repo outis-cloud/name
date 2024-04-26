@@ -52,18 +52,16 @@ if [[ "${release}" != "ubuntu" ]]; then
 #else 
 #       echo -e " ${red} Failed to check Os. Your Os System not Supported " && exit 1
 fi
-ubuntu
+ubu
 
-ubuntu()
-{
+ubu(){
 apt update  -y
 apt install bind9 bind9utils git bind9-doc lolcat figlet  -y 
 nameserver
 
 }
 
-centos()
-{
+cent(){
 yum update -y
 yum install bind bind-utils git -y
 }
