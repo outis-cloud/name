@@ -45,14 +45,6 @@ else
 fi
 
 
-if [[ "${release}" == "centos" ]]; then
-	echo "vvvvvvvvvv"
-elif [[ "${release}" == "ubuntu" ]]; then
-	echo "tttttttttttt" 
-	ubuntu
-else 
-      echo -e " ${red} Failed to check Os. Your Os System not Supported " && exit 1
-fi
 
 ubuntu() {
 apt update  -y
@@ -65,6 +57,16 @@ centos() {
 yum update -y
 yum install bind bind-utils git -y
 }
+
+
+if [[ "${release}" == "centos" ]]; then
+         echo "vvvvvvvvvv"
+elif [[ "${release}" == "ubuntu" ]]; then
+           ubuntu
+else
+echo -e " ${red} Failed to check Os. Your Os System not Supported " && exit 1
+fi
+
 
 
 install_dep() {
