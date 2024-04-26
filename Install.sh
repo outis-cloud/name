@@ -92,12 +92,12 @@ finish() {
 	 echo -e " \n"
 	 read -p " Please Enter Your Ip server:" $ip
 	 
-	 if [ -z  "$domain" ] && [ -z "$ip" ]; then
-        	echo "Please A domain Real And Ip server "
-         else
+	 if [ -n  "$domain" ] && [ -n "$ip" ]; then
                filedb
                changenameserver
                finish
+       else
+	       echo "Please A domain Real And Ip server "
 	 fi
  }
 														       
