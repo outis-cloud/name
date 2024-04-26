@@ -46,9 +46,9 @@ fi
 
 
 if [[ "${release}" == "centos" ]]; then
-	install_dep
+	echo "vvvvvvvvvv"
 elif [[ "${release}" == "ubuntu" ]]; then
-	install_dep
+	echo "tttttttttttt" 
 else 
       echo -e " ${red} Failed to check Os. Your Os System not Supported " && exit 1
 fi
