@@ -46,9 +46,9 @@ fi
 
 
 if [[ "${release}" == "centos" ]]; then
-	centos
+	centos()
 elif [[ "${release}" == "ubuntu" ]]; then
-	ubuntu
+	ubuntu()
 else 
        echo -e " ${red} Failed to check Os. Your Os System not Supported " && exit 1
 fi
