@@ -47,15 +47,15 @@ fi
 
 
 ubuntu() {
-apt update  -y
-apt install bind9 bind9utils git bind9-doc lolcat figlet  -y 
-nameserver
+	apt update  -y
+	apt install bind9 bind9utils git bind9-doc lolcat figlet  -y 
+	nameserver
 
 }
 
 centos() {
-yum update -y
-yum install bind bind-utils git -y
+	yum update -y
+	yum install bind bind-utils git -y
 }
 
 
@@ -89,16 +89,16 @@ sleep 1
 
 nameserver() { 
 
-read -p "${yellow} Please Enter Domains Name:" $domain
-read -p "${yellow} Please Enter Your Ip server:" $ip
+	read -p "${yellow} Please Enter Domains Name:" $domain
+	read -p "${yellow} Please Enter Your Ip server:" $ip
 
-if [ -z  "$domain" ] && [ -z "$ip" ]; then
-	echo "Please A domain Real And Ip server "
-else
-	filedb
-	changenameserver
-	finish
-fi
+	if [ -z  "$domain" ] && [ -z "$ip" ]; then
+		echo "Please A domain Real And Ip server "
+	else
+		filedb
+		changenameserver
+		finish
+	fi
 }
 
 filedb() {
