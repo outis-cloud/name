@@ -45,26 +45,24 @@ else
 fi
 
 
-echo "The OS release is  $release "
-
-
-
 if [[ "${release}" == "centos" ]]; then
-	install_centos
+	centos
 elif [[ "${release}" == "ubuntu" ]]; then
-	install_ubuntu
+	ubuntu
 else 
        echo -e " ${red} Failed to check Os. Your Os System not Supported " && exit 1
 fi
 
-install_ubuntu() {
+ubuntu()
+{
 apt update  -y
 apt install bind9 bind9utils git bind9-doc lolcat figlet  -y 
 nameserver
 
 }
 
-install_centos(){
+centos()
+{
 yum update -y
 yum install bind bind-utils git -y
 }
