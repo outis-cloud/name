@@ -30,10 +30,8 @@ plain='\033[0m'
 # check OS 
 
 
-ubunutos(){
 
 
-}
 
 if [[ -f /etc/os-release ]]; then 
 	source /etc/os-release
