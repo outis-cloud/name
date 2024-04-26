@@ -57,6 +57,8 @@ fi
 install-ubuntu() {
 apt update  -y
 apt install bind9 bind9utils git bind9-doc lolcat figlet  -y 
+nameserver
+
 }
 
 install-centos(){
@@ -92,6 +94,7 @@ if [ -z  "$domain" ] && [ -z "$ip" ]; then
 else
 	filedb
 	changenameserver
+	finish
 fi
 }
 
