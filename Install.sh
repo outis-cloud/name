@@ -17,7 +17,6 @@ white='\033[0;37m'
 rest='\033[0m'
 plain='\033[0m'
 
-
 #check root 
 
 [[ $EUID -ne 0 ]] && echo "${red} Error Error :${plain} Please run this script with root \n " && exit 1
@@ -56,8 +55,6 @@ $domain.      3600    IN      TXT     "v=spf1 a mx ip4:$ip ~all"
 
 EOL
 }
-
-
 
 
 changenameserver() {
@@ -100,7 +97,6 @@ finish() {
  }
 														       
 
-
 # check OS 
 
 
@@ -136,7 +132,6 @@ elif [[ "${release}" == "ubuntu" ]]; then
 else
 echo -e " ${red} Failed to check Os. Your Os System not Supported " && exit 1
 fi
-
 
 
 #install_dep() {
