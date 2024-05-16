@@ -74,8 +74,6 @@ finish() {
  }
 	 
 
-
-
  nameserver() {
 	 clear 
 	 sleep 1
