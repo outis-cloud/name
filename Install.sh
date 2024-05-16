@@ -21,7 +21,6 @@ plain='\033[0m'
 
 [[ $EUID -ne 0 ]] && echo "${red} Error Error :${plain} Please run this script with root \n " && exit 1
 
-
 filedb() {
 	        cd /etc/bind/
         	touch $domain.db
