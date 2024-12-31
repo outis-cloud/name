@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sleep 1
+# Author:   OuTiS
 
 red='\033[0;31m'
 green='\033[0;32m'
@@ -13,33 +13,16 @@ rest='\033[0m'
 plain='\033[0m'
 
 
-check_root() {
-    if [[ $EUID -ne 0 ]]; then
-        echo -e "${red}Error: This script must be run as root!${plain}"
+check_user_root(){
+    if [ "$EUID" -ne 0 ]; then 
+        echo -e ""
+        echo -e "${RED}This script must be run as root. Please switch to the root user and try again.${ENDCOLOR}"
         exit 1
     fi
 }
-
-install_dependencies() {
-    echo -e "${blue}Installing necessary packages...${plain}"
-    if [[ -f /etc/os-release ]]; then
-        source /etc/os-release
-        if [[ $ID == "ubuntu" || $ID == "debian" ]]; then
-            apt update -y
-            apt install -y bind9 bind9utils git curl sudo lolcat figlet
-        elif [[ $ID == "centos" || $ID == "rhel" ]]; then
-            yum install -y bind bind-utils git curl sudo
-        else
-            echo -e "${red}Unsupported OS: $ID. Only Ubuntu, Debian, CentOS, and RHEL are supported.${plain}"
-            exit 1
-        fi
-    else
-        echo -e "${red}Cannot detect the OS version! Exiting.${plain}"
-        exit 1
-    fi
-    echo -e "${green}Packages installed successfully.${plain}"
-}
-
+clear
+check_user_root
+sleep 1;
 
 ZONE_DIR="/etc/coredns/zones"
 COREFILE="/etc/coredns/Corefile"
@@ -65,6 +48,76 @@ show_menu() {
     echo "9. Exit"
 }
 
+
+install_coredns(){
+    
+    echo -e "${blue}Checking operating system...${plain}"
+    if [[ -f /etc/os-release ]]; then
+        source /etc/os-release
+        if [[ $ID != "ubuntu" ]]; then
+            echo -e "${red}This script only supports Ubuntu. Detected OS: $ID.${plain}"
+            exit 1
+        fi
+    else
+        echo -e "${red}Cannot detect the operating system! Exiting.${plain}"
+        exit 1
+    fi
+
+    echo -e "${blue}Installing CoreDNS on Ubuntu...${plain}"
+    apt update -y 2>/dev/null
+    apt install -y curl sudo tar wget 2>/dev/null
+
+    COREDNS_VERSION=$(curl -s https://api.github.com/repos/coredns/coredns/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
+
+    if [[ -z "$COREDNS_VERSION" ]]; then
+        echo -e "${red}Failed to fetch the latest CoreDNS version.${plain}"
+        exit 1
+    fi
+
+    echo -e "${blue}Latest CoreDNS version: ${COREDNS_VERSION}${plain}"
+    echo -e "${blue}Downloading CoreDNS...${plain}"
+
+    wget "https://github.com/coredns/coredns/releases/download/v${COREDNS_VERSION}/coredns_${COREDNS_VERSION}_linux_amd64.tgz" -O coredns.tgz
+
+    if [[ $? -ne 0 ]]; then
+        echo -e "${red}Failed to download CoreDNS.${plain}"
+        exit 1
+    fi
+
+    tar -xzf coredns.tgz
+    mv coredns /usr/local/bin/
+    chmod +x /usr/local/bin/coredns
+}
+
+service_coredns(){
+cat <<EOL > /etc/systemd/system/coredns.service
+[Unit]
+Description=CoreDNS DNS server
+Documentation=https://coredns.io
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/coredns -conf /etc/coredns/Corefile
+Restart=on-failure
+User=root
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+
+echo -e "${blue}Enabling and starting CoreDNS service...${plain}"
+    systemctl daemon-reload
+    systemctl enable coredns
+    systemctl start coredns
+
+    if systemctl is-active --quiet coredns; then
+        echo -e "${green}CoreDNS installed and running successfully.${plain}"
+    else
+        echo -e "${red}CoreDNS installation failed or the service is not running.${plain}"
+    fi
+
+}
 add_domain() {
     read -p "Enter the domain name: " domain
     read -p "Enter the IP for the domain: " ip
@@ -74,7 +127,7 @@ add_domain() {
         return
     fi
 
-    if ! [[ $ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    if ! [[ $ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ || $ip =~ : ]]; then
         echo -e "${red}Invalid IP address.${plain}"
         return
     fi
@@ -102,12 +155,26 @@ ns2     IN      A       $ip
 www     IN      A       $ip
 EOL
 
+    if [[ $ip =~ : ]]; then
+        echo "ns1     IN    AAAA    $ip" >> "$zone_file"
+        echo "ns2     IN    AAAA    $ip" >> "$zone_file"
+    fi
+
+    if [[ ! -f "$COREFILE" ]]; then
+        echo -e "${yellow}Corefile not found. Creating a new one.${plain}"
+        echo ".:53 { log errors }" > "$COREFILE"
+    fi
+
     echo "zone \"$domain\" { file \"$ZONE_DIR/db.$domain\"; }" >> "$COREFILE"
     echo -e "${green}Domain $domain added successfully.${plain}"
     echo "$(date) - Added domain: $domain" >> "$LOG_FILE"
+
+    systemctl reload coredns
 }
 
-  add_record() {
+
+
+add_record() {
     read -p "Enter the domain name: " domain
     zone_file="$ZONE_DIR/db.$domain"
 
@@ -125,7 +192,7 @@ EOL
     echo "$(date) - Added record: $name $type $value to $domain" >> "$LOG_FILE"
 }
 
-  remove_record() {
+remove_record() {
     read -p "Enter the domain name: " domain
     zone_file="$ZONE_DIR/db.$domain"
 
@@ -143,25 +210,25 @@ EOL
     echo "$(date) - Removed record: $record from $domain" >> "$LOG_FILE"
 }
 
-  list_domains() {
+list_domains() {
     echo -e "${green}Available domains:${plain}"
     grep "zone" "$COREFILE" | awk '{print $2}' | tr -d '\";'
 }
 
-  reload_coredns() {
+reload_coredns() {
     sudo systemctl reload "$COREDNS_SERVICE"
     echo -e "${green}CoreDNS reloaded successfully.${plain}"
     echo "$(date) - Reloaded CoreDNS" >> "$LOG_FILE"
 }
 
-  backup_zones() {
+backup_zones() {
     backup_file="/etc/coredns/zones_backup_$(date +%Y%m%d%H%M%S).tar.gz"
     tar -czf "$backup_file" "$ZONE_DIR"
     echo -e "${green}Backup created at $backup_file${plain}"
     echo "$(date) - Created backup: $backup_file" >> "$LOG_FILE"
 }
 
-  restore_zones() {
+restore_zones() {
     read -p "Enter the backup file path: " backup_file
     if [[ -f "$backup_file" ]]; then
         tar -xzf "$backup_file" -C /
@@ -172,7 +239,7 @@ EOL
     fi
 }
 
-  view_logs() {
+view_logs() {
     less "$LOG_FILE"
 }
 
