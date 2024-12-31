@@ -2,21 +2,20 @@
 
 # Author:   OuTiS
 
-red='\033[0;31m'
-green='\033[0;32m'
-yellow='\033[0;33m'
-blue='\033[0;34m'
-purple='\033[0;35m'
-cyan='\033[0;36m'
-white='\033[0;37m'
-rest='\033[0m'
-plain='\033[0m'
-
+ORANGE=$(echo -ne '\e[38;5;214m')  
+BLUE=$(echo -ne '\e[94m')           
+RED=$(echo -ne '\e[31m')            
+GREEN=$(echo -ne '\e[32m')          
+ENDCOLOR=$(echo -ne '\e[0m')        
+YELLOW=$(echo -ne '\033[0;33m')     
+CYAN=$(echo -ne '\e[36m')           
+MAGENTA=$(echo -ne '\e[35m')        
+PURPLE=$(echo -ne '\e[38;5;129m') 
 
 check_user_root(){
     if [ "$EUID" -ne 0 ]; then 
         echo -e ""
-        echo -e "${red}This script must be run as root. Please switch to the root user and try again.${rest}"
+        echo -e "${RED}This script must be run as root. Please switch to the root user and try again.${ENDCOLOR}"
         exit 1
     fi
 }
@@ -25,79 +24,59 @@ clear
 check_user_root
 sleep 1;
 
-ZONE_DIR="/etc/coredns/zones"
-COREFILE="/etc/coredns/Corefile"
-COREDNS_SERVICE="coredns"
-LOG_FILE="/var/log/coredns_manager.log"
+ZONE_DIR="/etc/coREDns/zones"
+COREFILE="/etc/coREDns/Corefile"
+COREDNS_SERVICE="coREDns"
+LOG_FILE="/var/log/coREDns_manager.log"
 
-
-show_banner() {
-    clear
-    echo -e "${blue}############################################${plain}"
-    echo -e "${blue}#         CoreDNS Manager v2.0             #${plain}"
-    echo -e "${blue}############################################${plain}"
-}
-
-show_menu() {
-    echo "1. Add a new domain"
-    echo "2. Add a DNS record"
-    echo "3. Remove a DNS record"
-    echo "4. List all domains"
-    echo "5. Reload CoreDNS"
-    echo "6. Backup zones"
-    echo "7. Restore zones"
-    echo "8. View logs"
-    echo "9. Exit"
-}
-
-install_coredns(){
-    echo -e "${blue}Checking operating system...${plain}"
+install_coREDns(){
+    echo -e "${BLUE}Checking operating system...${ENDCOLOR}"
     if [[ -f /etc/os-release ]]; then
         source /etc/os-release
         if [[ $ID != "ubuntu" ]]; then
-            echo -e "${red}This script only supports Ubuntu. Detected OS: $ID.${plain}"
+            echo -e "${RED}This script only supports Ubuntu. Detected OS: $ID.${ENDCOLOR}"
             exit 1
         fi
     else
-        echo -e "${red}Cannot detect the operating system! Exiting.${plain}"
+        echo -e "${RED}Cannot detect the operating system! Exiting.${ENDCOLOR}"
         exit 1
     fi
 
-    echo -e "${blue}Installing CoreDNS on Ubuntu...${plain}"
+    echo -e "${BLUE}Installing CoreDNS on Ubuntu...${ENDCOLOR}"
     apt update -y 2>/dev/null
     apt install -y curl sudo tar wget 2>/dev/null
 
-    COREDNS_VERSION=$(curl -s https://api.github.com/repos/coredns/coredns/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
+    COREDNS_VERSION=$(curl -s https://api.github.com/repos/coREDns/coREDns/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
 
     if [[ -z "$COREDNS_VERSION" ]]; then
-        echo -e "${red}Failed to fetch the latest CoreDNS version.${plain}"
+        echo -e "${RED}Failed to fetch the latest CoreDNS version.${ENDCOLOR}"
         exit 1
     fi
 
-    echo -e "${blue}Latest CoreDNS version: ${COREDNS_VERSION}${plain}"
-    echo -e "${blue}Downloading CoreDNS...${plain}"
+    echo -e "${BLUE}Latest CoreDNS version: ${COREDNS_VERSION}${ENDCOLOR}"
+    echo -e "${BLUE}Downloading CoreDNS...${ENDCOLOR}"
 
-    wget "https://github.com/coredns/coredns/releases/download/v${COREDNS_VERSION}/coredns_${COREDNS_VERSION}_linux_amd64.tgz" -O coredns.tgz
+    wget "https://github.com/coREDns/coREDns/releases/download/v${COREDNS_VERSION}/coREDns_${COREDNS_VERSION}_linux_amd64.tgz" -O coREDns.tgz
 
     if [[ $? -ne 0 ]]; then
-        echo -e "${red}Failed to download CoreDNS.${plain}"
+        echo -e "${RED}Failed to download CoreDNS.${ENDCOLOR}"
         exit 1
     fi
 
-    tar -xzf coredns.tgz
-    mv coredns /usr/local/bin/
-    chmod +x /usr/local/bin/coredns
+    tar -xzf coREDns.tgz
+    mv coREDns /usr/local/bin/
+    chmod +x /usr/local/bin/coREDns
 }
 
-service_coredns(){
-    cat <<EOL > /etc/systemd/system/coredns.service
+service_coREDns(){
+    cat <<EOL > /etc/systemd/system/coREDns.service
 [Unit]
 Description=CoreDNS DNS server
-Documentation=https://coredns.io
+Documentation=https://coREDns.io
 After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/coredns -conf /etc/coredns/Corefile
+ExecStart=/usr/local/bin/coREDns -conf /etc/coREDns/Corefile
 Restart=on-failure
 User=root
 
@@ -105,35 +84,35 @@ User=root
 WantedBy=multi-user.target
 EOL
 
-    echo -e "${blue}Enabling and starting CoreDNS service...${plain}"
+    echo -e "${BLUE}Enabling and starting CoreDNS service...${ENDCOLOR}"
     systemctl daemon-reload
-    systemctl enable coredns
-    systemctl start coredns
+    systemctl enable coREDns
+    systemctl start coREDns
 
-    if systemctl is-active --quiet coredns; then
-        echo -e "${green}CoreDNS installed and running successfully.${plain}"
+    if systemctl is-active --quiet coREDns; then
+        echo -e "${GREEN}CoreDNS installed and running successfully.${ENDCOLOR}"
     else
-        echo -e "${red}CoreDNS installation failed or the service is not running.${plain}"
+        echo -e "${RED}CoreDNS installation failed or the service is not running.${ENDCOLOR}"
     fi
 }
 
 add_domain() {
-    read -p "Enter the domain name: " domain
-    read -p "Enter the IP for the domain: " ip
+    read -p "$(echo -e "${BLUE} Enter the domain name:  ${ENDCOLOR}")" domain
+    read -p "$(echo -e "${BLUE} Enter the IP for the domain:  ${ENDCOLOR}")" ip 
 
     if ! [[ $domain =~ ^[a-zA-Z0-9.-]+$ ]]; then
-        echo -e "${red}Invalid domain name.${plain}"
+        echo -e "${RED}Invalid domain name.${ENDCOLOR}"
         return
     fi
 
     if ! [[ $ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ || $ip =~ : ]]; then
-        echo -e "${red}Invalid IP address.${plain}"
+        echo -e "${RED}Invalid IP address.${ENDCOLOR}"
         return
     fi
 
     zone_file="$ZONE_DIR/db.$domain"
     if [[ -f "$zone_file" ]]; then
-        echo -e "${red}Domain already exists.${plain}"
+        echo -e "${RED}Domain already exists.${ENDCOLOR}"
         return
     fi
 
@@ -158,27 +137,26 @@ EOL
         echo "ns1     IN    AAAA    $ip" >> "$zone_file"
         echo "ns2     IN    AAAA    $ip" >> "$zone_file"
     fi
-
     if [[ ! -f "$COREFILE" ]]; then
-        echo -e "${yellow}Corefile not found. Creating a new one.${plain}"
+        echo -e "${YELLOW}Corefile not found. Creating a new one.${ENDCOLOR}"
         echo ".:53 { log errors }" > "$COREFILE"
     fi
 
     echo "zone \"$domain\" { file \"$ZONE_DIR/db.$domain\"; }" >> "$COREFILE"
-    echo -e "${green}Domain $domain added successfully.${plain}"
+    echo -e "${GREEN}Domain $domain added successfully.${ENDCOLOR}"
     echo "$(date) - Added domain: $domain" >> "$LOG_FILE"
 
-    systemctl reload coredns
+    systemctl reload coREDns
 }
 
 
 
 add_record() {
-    read -p "Enter the domain name: " domain
+    read -p "$(echo -e "${BLUE} Enter the domain name:  ${ENDCOLOR}")" domain
     zone_file="$ZONE_DIR/db.$domain"
 
     if [[ ! -f "$zone_file" ]]; then
-        echo -e "${red}Domain does not exist.${plain}"
+        echo -e "${RED}Domain does not exist.${ENDCOLOR}"
         return
     fi
 
@@ -187,97 +165,116 @@ add_record() {
     read -p "Enter the record value: " value
 
     echo "$name    IN    $type    $value" >> "$zone_file"
-    echo -e "${green}Record added successfully.${plain}"
+    echo -e "${GREEN}Record added successfully.${ENDCOLOR}"
     echo "$(date) - Added record: $name $type $value to $domain" >> "$LOG_FILE"
 }
 
 remove_record() {
     read -p "Enter the domain name: " domain
+    read -p "$(echo -e "${BLUE} Enter the domain name: ${ENDCOLOR}")" domain
     zone_file="$ZONE_DIR/db.$domain"
 
     if [[ ! -f "$zone_file" ]]; then
-        echo -e "${red}Domain does not exist.${plain}"
+        echo -e "${RED}Domain does not exist.${ENDCOLOR}"
         return
     fi
 
-    echo -e "${yellow}Current records:${plain}"
+    echo -e "${YELLOW}Current records:${ENDCOLOR}"
     cat "$zone_file"
 
-    read -p "Enter the record to remove (full line): " record
+    read -p "$(echo -e "${BLUE} Enter the record to remove (full line): ${ENDCOLOR}")" record
     sed -i "/$record/d" "$zone_file"
-    echo -e "${green}Record removed successfully.${plain}"
+    echo -e "${GREEN}Record removed successfully.${ENDCOLOR}"
     echo "$(date) - Removed record: $record from $domain" >> "$LOG_FILE"
 }
 
 list_domains() {
-    echo -e "${green}Available domains:${plain}"
+    echo -e "${GREEN}Available domains:${ENDCOLOR}"
     domains=$(grep "zone" "$COREFILE" | awk '{print $2}' | tr -d '\";')
 
     if [[ -z "$domains" ]]; then
-        echo -e "${red}No domains found in CoreDNS configuration.${plain}"
+        echo -e "${RED}No domains found in CoreDNS configuration.${ENDCOLOR}"
         return
     fi
 
-    echo -e "${green}Please choose a domain from the list below:${plain}"
+    echo -e "${GREEN}Please choose a domain from the list below:${ENDCOLOR}"
     echo "$domains"
     
-    read -p "Enter the domain name to get the name servers: " domain
-
+    read -p "$(echo -e "${BLUE} Enter the domain name to get the name servers:  ${ENDCOLOR}")" domain
     if ! echo "$domains" | grep -w "$domain" &>/dev/null; then
-        echo -e "${red}Domain not found in the list.${plain}"
+        echo -e "${RED}Domain not found in the list.${ENDCOLOR}"
         return
     fi
 
-    echo -e "${blue}For domain $domain, please set the following name servers in your domain management panel:${plain}"
+    echo -e "${BLUE}For domain $domain, please set the following name servers in your domain management panel:${ENDCOLOR}"
     echo -e "ns1.$domain"
     echo -e "ns2.$domain"
-    echo -e "${green}Please make sure to set the above name servers in the DNS settings of your domain.${plain}"
+    echo -e "${GREEN}Please make sure to set the above name servers in the DNS settings of your domain.${ENDCOLOR}"
 }
 
-reload_coredns() {
+reload_coREDns() {
     sudo systemctl reload "$COREDNS_SERVICE"
-    echo -e "${green}CoreDNS reloaded successfully.${plain}"
+    echo -e "${GREEN}CoreDNS reloaded successfully.${ENDCOLOR}"
     echo "$(date) - Reloaded CoreDNS" >> "$LOG_FILE"
 }
 
 backup_zones() {
-    backup_file="/etc/coredns/zones_backup_$(date +%Y%m%d%H%M%S).tar.gz"
+    backup_file="/etc/coREDns/zones_backup_$(date +%Y%m%d%H%M%S).tar.gz"
     tar -czf "$backup_file" "$ZONE_DIR"
-    echo -e "${green}Backup created at $backup_file${plain}"
+    echo -e "${GREEN}Backup created at $backup_file${ENDCOLOR}"
     echo "$(date) - Created backup: $backup_file" >> "$LOG_FILE"
 }
 
 restore_zones() {
-    read -p "Enter the backup file path: " backup_file
+    read -p "$(echo -e "${BLUE} Choose an option: ${ENDCOLOR}")" backup_file
     if [[ -f "$backup_file" ]]; then
         tar -xzf "$backup_file" -C /
-        echo -e "${green}Zones restored successfully.${plain}"
-        echo "$(date) - Restored backup: $backup_file" >> "$LOG_FILE"
+        echo -e "${GREEN}Zones restoRED successfully.${ENDCOLOR}"
+        echo "$(date) - RestoRED backup: $backup_file" >> "$LOG_FILE"
     else
-        echo -e "${red}Backup file not found.${plain}"
+        echo -e "${RED}Backup file not found.${ENDCOLOR}"
     fi
 }
 
 view_logs() {
     less "$LOG_FILE"
 }
-
 while true; do
-    show_banner
-    show_menu
-    read -p "Choose an option: " choice
+    echo " "
+    echo -e "${BLUE}╔═══════════════════════════════════════════════════════════╗${ENDCOLOR}"
+    echo -e "                    ${GREEN} 🔥 NameShift 🔥   ${ENDCOLOR}"
+    echo -e "              ${CYAN} https://github.com/Niihil/NameShift/  ${ENDCOLOR}"
+    echo -e "${BLUE}╚═══════════════════════════════════════════════════════════╝${ENDCOLOR}"
+    echo " "
+    
+    echo -e "${RED}============================ ${ENDCOLOR}"
+    echo -e "${RED}1.${ENDCOLOR} Add a new domain${ENDCOLOR}"
+    echo -e "${RED}2.${ENDCOLOR} Add a DNS record${ENDCOLOR}"
+    echo -e "${RED}3.${ENDCOLOR} Remove a DNS record${ENDCOLOR}"
+    echo -e "${RED}4.${ENDCOLOR} List all domains${ENDCOLOR}"
+    echo -e "${RED}5.${ENDCOLOR} Reload CoreDNS${ENDCOLOR}"
+    echo -e "${RED}6.${ENDCOLOR} Backup zones${ENDCOLOR}"
+    echo -e "${RED}7.${ENDCOLOR} Restore zones${ENDCOLOR}"
+    echo -e "${RED}8.${ENDCOLOR} View logs${ENDCOLOR}"
+    echo -e "${RED}9.${ENDCOLOR} Exit${ENDCOLOR}"
+    echo -e "${RED}============================ ${ENDCOLOR}"
+    echo " "
+    
+    read -p "$(echo -e "${BLUE} Choose an option: ${ENDCOLOR}")" choice
+
     case $choice in
         1) add_domain ;;
         2) add_record ;;
         3) remove_record ;;
         4) list_domains ;;
-        5) reload_coredns ;;
+        5) reload_coREDns ;;
         6) backup_zones ;;
         7) restore_zones ;;
         8) view_logs ;;
         9) exit ;;
-        *) echo -e "${red}Invalid option. Please try again.${plain}" ;;
+        *) echo -e "${RED}Invalid option. Please try again.${ENDCOLOR}" ;;
     esac
-    read -p "Press Enter to continue..." key
+    
+    read -p "$(echo -e "${BLUE}Press Enter to continue... ${ENDCOLOR}")" key
 done
 
