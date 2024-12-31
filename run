@@ -11,21 +11,42 @@ cyan='\033[0;36m'
 white='\033[0;37m'
 rest='\033[0m'
 plain='\033[0m'
-#!/bin/bash
+
+
+check_root() {
+    if [[ $EUID -ne 0 ]]; then
+        echo -e "${red}Error: This script must be run as root!${plain}"
+        exit 1
+    fi
+}
+
+install_dependencies() {
+    echo -e "${blue}Installing necessary packages...${plain}"
+    if [[ -f /etc/os-release ]]; then
+        source /etc/os-release
+        if [[ $ID == "ubuntu" || $ID == "debian" ]]; then
+            apt update -y
+            apt install -y bind9 bind9utils git curl sudo lolcat figlet
+        elif [[ $ID == "centos" || $ID == "rhel" ]]; then
+            yum install -y bind bind-utils git curl sudo
+        else
+            echo -e "${red}Unsupported OS: $ID. Only Ubuntu, Debian, CentOS, and RHEL are supported.${plain}"
+            exit 1
+        fi
+    else
+        echo -e "${red}Cannot detect the OS version! Exiting.${plain}"
+        exit 1
+    fi
+    echo -e "${green}Packages installed successfully.${plain}"
+}
+
 
 ZONE_DIR="/etc/coredns/zones"
 COREFILE="/etc/coredns/Corefile"
 COREDNS_SERVICE="coredns"
 LOG_FILE="/var/log/coredns_manager.log"
 
-# رنگ‌ها
-red='\033[0;31m'
-green='\033[0;32m'
-yellow='\033[0;33m'
-blue='\033[0;34m'
-plain='\033[0m'
 
-# نمایش بنر
   show_banner() {
     clear
     echo -e "${blue}############################################${plain}"
