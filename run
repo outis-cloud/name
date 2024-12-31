@@ -211,7 +211,27 @@ remove_record() {
 
 list_domains() {
     echo -e "${green}Available domains:${plain}"
-    grep "zone" "$COREFILE" | awk '{print $2}' | tr -d '\";'
+    domains=$(grep "zone" "$COREFILE" | awk '{print $2}' | tr -d '\";')
+
+    if [[ -z "$domains" ]]; then
+        echo -e "${red}No domains found in CoreDNS configuration.${plain}"
+        return
+    fi
+
+    echo -e "${green}Please choose a domain from the list below:${plain}"
+    echo "$domains"
+    
+    read -p "Enter the domain name to get the name servers: " domain
+
+    if ! echo "$domains" | grep -w "$domain" &>/dev/null; then
+        echo -e "${red}Domain not found in the list.${plain}"
+        return
+    fi
+
+    echo -e "${blue}For domain $domain, please set the following name servers in your domain management panel:${plain}"
+    echo -e "ns1.$domain"
+    echo -e "ns2.$domain"
+    echo -e "${green}Please make sure to set the above name servers in the DNS settings of your domain.${plain}"
 }
 
 reload_coredns() {
