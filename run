@@ -11,28 +11,166 @@ cyan='\033[0;36m'
 white='\033[0;37m'
 rest='\033[0m'
 plain='\033[0m'
+#!/bin/bash
 
+ZONE_DIR="/etc/coredns/zones"
+COREFILE="/etc/coredns/Corefile"
+COREDNS_SERVICE="coredns"
+LOG_FILE="/var/log/coredns_manager.log"
 
-check_root() {
-    if [[ $EUID -ne 0 ]]; then
-        echo -e "${red}Error:${plain} Please run this script with root privileges."
-        exit 1
+# رنگ‌ها
+red='\033[0;31m'
+green='\033[0;32m'
+yellow='\033[0;33m'
+blue='\033[0;34m'
+plain='\033[0m'
+
+# نمایش بنر
+  show_banner() {
+    clear
+    echo -e "${blue}############################################${plain}"
+    echo -e "${blue}#         CoreDNS Manager v2.0             #${plain}"
+    echo -e "${blue}############################################${plain}"
+}
+show_menu() {
+    echo "1. Add a new domain"
+    echo "2. Add a DNS record"
+    echo "3. Remove a DNS record"
+    echo "4. List all domains"
+    echo "5. Reload CoreDNS"
+    echo "6. Backup zones"
+    echo "7. Restore zones"
+    echo "8. View logs"
+    echo "9. Exit"
+}
+
+add_domain() {
+    read -p "Enter the domain name: " domain
+    read -p "Enter the IP for the domain: " ip
+
+    if ! [[ $domain =~ ^[a-zA-Z0-9.-]+$ ]]; then
+        echo -e "${red}Invalid domain name.${plain}"
+        return
+    fi
+
+    if ! [[ $ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo -e "${red}Invalid IP address.${plain}"
+        return
+    fi
+
+    zone_file="$ZONE_DIR/db.$domain"
+    if [[ -f "$zone_file" ]]; then
+        echo -e "${red}Domain already exists.${plain}"
+        return
+    fi
+
+    mkdir -p "$ZONE_DIR"
+    cat <<EOL > "$zone_file"
+$TTL 3600
+@       IN      SOA     ns1.$domain. admin.$domain. (
+                        $(date +%Y%m%d%H)
+                        3600
+                        1800
+                        604800
+                        86400 )
+        IN      NS      ns1.$domain.
+        IN      NS      ns2.$domain.
+ns1     IN      A       $ip
+ns2     IN      A       $ip
+@       IN      A       $ip
+www     IN      A       $ip
+EOL
+
+    echo "zone \"$domain\" { file \"$ZONE_DIR/db.$domain\"; }" >> "$COREFILE"
+    echo -e "${green}Domain $domain added successfully.${plain}"
+    echo "$(date) - Added domain: $domain" >> "$LOG_FILE"
+}
+
+  add_record() {
+    read -p "Enter the domain name: " domain
+    zone_file="$ZONE_DIR/db.$domain"
+
+    if [[ ! -f "$zone_file" ]]; then
+        echo -e "${red}Domain does not exist.${plain}"
+        return
+    fi
+
+    read -p "Enter the record type (A, CNAME, etc.): " type
+    read -p "Enter the record name: " name
+    read -p "Enter the record value: " value
+
+    echo "$name    IN    $type    $value" >> "$zone_file"
+    echo -e "${green}Record added successfully.${plain}"
+    echo "$(date) - Added record: $name $type $value to $domain" >> "$LOG_FILE"
+}
+
+  remove_record() {
+    read -p "Enter the domain name: " domain
+    zone_file="$ZONE_DIR/db.$domain"
+
+    if [[ ! -f "$zone_file" ]]; then
+        echo -e "${red}Domain does not exist.${plain}"
+        return
+    fi
+
+    echo -e "${yellow}Current records:${plain}"
+    cat "$zone_file"
+
+    read -p "Enter the record to remove (full line): " record
+    sed -i "/$record/d" "$zone_file"
+    echo -e "${green}Record removed successfully.${plain}"
+    echo "$(date) - Removed record: $record from $domain" >> "$LOG_FILE"
+}
+
+  list_domains() {
+    echo -e "${green}Available domains:${plain}"
+    grep "zone" "$COREFILE" | awk '{print $2}' | tr -d '\";'
+}
+
+  reload_coredns() {
+    sudo systemctl reload "$COREDNS_SERVICE"
+    echo -e "${green}CoreDNS reloaded successfully.${plain}"
+    echo "$(date) - Reloaded CoreDNS" >> "$LOG_FILE"
+}
+
+  backup_zones() {
+    backup_file="/etc/coredns/zones_backup_$(date +%Y%m%d%H%M%S).tar.gz"
+    tar -czf "$backup_file" "$ZONE_DIR"
+    echo -e "${green}Backup created at $backup_file${plain}"
+    echo "$(date) - Created backup: $backup_file" >> "$LOG_FILE"
+}
+
+  restore_zones() {
+    read -p "Enter the backup file path: " backup_file
+    if [[ -f "$backup_file" ]]; then
+        tar -xzf "$backup_file" -C /
+        echo -e "${green}Zones restored successfully.${plain}"
+        echo "$(date) - Restored backup: $backup_file" >> "$LOG_FILE"
+    else
+        echo -e "${red}Backup file not found.${plain}"
     fi
 }
 
-finish() {
-	echo -e " "
-	echo -e " "
-	echo -e " "
-	echo -e " "
-	echo -e "Now Finish Nameservers :\n "
-	echo -e  "ns1.$domain \t $ip  \nns2.$domain \t $ip " |lolcat -as 100
- }
-	 
-ubuntu() {
-	apt update  -y
-	apt install bind9 bind9utils git bind9-doc lolcat figlet  -y 
-	nameserver
+  view_logs() {
+    less "$LOG_FILE"
 }
 
+while true; do
+    show_banner
+    show_menu
+    read -p "Choose an option: " choice
+    case $choice in
+        1) add_domain ;;
+        2) add_record ;;
+        3) remove_record ;;
+        4) list_domains ;;
+        5) reload_coredns ;;
+        6) backup_zones ;;
+        7) restore_zones ;;
+        8) view_logs ;;
+        9) exit ;;
+        *) echo -e "${red}Invalid option. Please try again.${plain}" ;;
+    esac
+    read -p "Press Enter to continue..." key
+done
 
