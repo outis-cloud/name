@@ -16,10 +16,11 @@ plain='\033[0m'
 check_user_root(){
     if [ "$EUID" -ne 0 ]; then 
         echo -e ""
-        echo -e "${RED}This script must be run as root. Please switch to the root user and try again.${ENDCOLOR}"
+        echo -e "${red}This script must be run as root. Please switch to the root user and try again.${rest}"
         exit 1
     fi
 }
+
 clear
 check_user_root
 sleep 1;
@@ -30,12 +31,13 @@ COREDNS_SERVICE="coredns"
 LOG_FILE="/var/log/coredns_manager.log"
 
 
-  show_banner() {
+show_banner() {
     clear
     echo -e "${blue}############################################${plain}"
     echo -e "${blue}#         CoreDNS Manager v2.0             #${plain}"
     echo -e "${blue}############################################${plain}"
 }
+
 show_menu() {
     echo "1. Add a new domain"
     echo "2. Add a DNS record"
@@ -48,9 +50,7 @@ show_menu() {
     echo "9. Exit"
 }
 
-
 install_coredns(){
-    
     echo -e "${blue}Checking operating system...${plain}"
     if [[ -f /etc/os-release ]]; then
         source /etc/os-release
@@ -90,7 +90,7 @@ install_coredns(){
 }
 
 service_coredns(){
-cat <<EOL > /etc/systemd/system/coredns.service
+    cat <<EOL > /etc/systemd/system/coredns.service
 [Unit]
 Description=CoreDNS DNS server
 Documentation=https://coredns.io
@@ -105,8 +105,7 @@ User=root
 WantedBy=multi-user.target
 EOL
 
-
-echo -e "${blue}Enabling and starting CoreDNS service...${plain}"
+    echo -e "${blue}Enabling and starting CoreDNS service...${plain}"
     systemctl daemon-reload
     systemctl enable coredns
     systemctl start coredns
@@ -116,8 +115,8 @@ echo -e "${blue}Enabling and starting CoreDNS service...${plain}"
     else
         echo -e "${red}CoreDNS installation failed or the service is not running.${plain}"
     fi
-
 }
+
 add_domain() {
     read -p "Enter the domain name: " domain
     read -p "Enter the IP for the domain: " ip
