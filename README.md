@@ -15,6 +15,7 @@ NameShift is a DNS management script designed for the installation, configuratio
 
 # Use the script
 
+````
 ```
-sudo bash <(curl -sL https://raw.githubusercontent.com/Niihil/NameShift/main/run)
+curl -sLO https://raw.githubusercontent.com/Niihil/NameShift/main/run && sudo bash run
 ```

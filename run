@@ -239,6 +239,7 @@ restore_zones() {
 view_logs() {
     less "$LOG_FILE"
 }
+
 while true; do
     echo " "
     echo -e "${BLUE}╔═══════════════════════════════════════════════════════════╗${ENDCOLOR}"
@@ -246,35 +247,37 @@ while true; do
     echo -e "              ${CYAN} https://github.com/Niihil/NameShift/  ${ENDCOLOR}"
     echo -e "${BLUE}╚═══════════════════════════════════════════════════════════╝${ENDCOLOR}"
     echo " "
-    
+
     echo -e "${RED}============================ ${ENDCOLOR}"
-    echo -e "${RED}1.${ENDCOLOR} Add a new domain${ENDCOLOR}"
-    echo -e "${RED}2.${ENDCOLOR} Add a DNS record${ENDCOLOR}"
-    echo -e "${RED}3.${ENDCOLOR} Remove a DNS record${ENDCOLOR}"
-    echo -e "${RED}4.${ENDCOLOR} List all domains${ENDCOLOR}"
-    echo -e "${RED}5.${ENDCOLOR} Reload CoreDNS${ENDCOLOR}"
-    echo -e "${RED}6.${ENDCOLOR} Backup zones${ENDCOLOR}"
-    echo -e "${RED}7.${ENDCOLOR} Restore zones${ENDCOLOR}"
-    echo -e "${RED}8.${ENDCOLOR} View logs${ENDCOLOR}"
-    echo -e "${RED}9.${ENDCOLOR} Exit${ENDCOLOR}"
+    echo -e "${RED}1.${ENDCOLOR}  Installing NameShift ${ENDCOLOR}"
+    echo -e "${RED}2.${ENDCOLOR}  Add a new domain${ENDCOLOR}"
+    echo -e "${RED}3.${ENDCOLOR}  Add a DNS record${ENDCOLOR}"
+    echo -e "${RED}4.${ENDCOLOR}  Remove a DNS record${ENDCOLOR}"
+    echo -e "${RED}5.${ENDCOLOR}  List all domains${ENDCOLOR}"
+    echo -e "${RED}6.${ENDCOLOR}  Reload CoreDNS${ENDCOLOR}"
+    echo -e "${RED}7.${ENDCOLOR}  Backup zones${ENDCOLOR}"
+    echo -e "${RED}8.${ENDCOLOR}  Restore zones${ENDCOLOR}"
+    echo -e "${RED}9.${ENDCOLOR}  View logs${ENDCOLOR}"
+    echo -e "${RED}10.${ENDCOLOR} Exit${ENDCOLOR}"
     echo -e "${RED}============================ ${ENDCOLOR}"
     echo " "
-    
+
     read -p "$(echo -e "${BLUE} Choose an option: ${ENDCOLOR}")" choice
 
     case $choice in
-        1) add_domain ;;
-        2) add_record ;;
-        3) remove_record ;;
-        4) list_domains ;;
-        5) reload_coREDns ;;
-        6) backup_zones ;;
-        7) restore_zones ;;
-        8) view_logs ;;
-        9) exit ;;
+        1)install_coREDns;;
+        2) add_domain ;;
+        3) add_record ;;
+        4) remove_record ;;
+        5) list_domains ;;
+        6) reload_coREDns ;;
+        7) backup_zones ;;
+        8) restore_zones ;;
+        9) view_logs ;;
+        10) exit ;;
         *) echo -e "${RED}Invalid option. Please try again.${ENDCOLOR}" ;;
     esac
-    
+
     read -p "$(echo -e "${BLUE}Press Enter to continue... ${ENDCOLOR}")" key
 done
 
