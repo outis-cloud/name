@@ -48,7 +48,7 @@ install_coREDns(){
     clear 
     sleep .5 
     apt update -y 2>/dev/null
-    apt install -y curl sudo tar wget 2>/dev/null
+    apt install -y curl  tar wget 2>/dev/null
 
     COREDNS_VERSION=$(curl -s https://api.github.com/repos/coREDns/coREDns/releases/latest | grep '"tag_name"' | sed -E 's/.*"v([^"]+)".*/\1/')
 
@@ -68,7 +68,7 @@ install_coREDns(){
     fi
 
     tar -xzf coREDns.tgz
-    mv coREDns /usr/local/biin/
+    mv coREDns /usr/local/bin/
     DIR="/usr/local/bin/coREDns"
 
 if [ -d "$DIR" ]; then
@@ -244,7 +244,7 @@ list_domains() {
 }
 
 reload_coREDns() {
-    sudo systemctl reload "$COREDNS_SERVICE"
+    systemctl reload "$COREDNS_SERVICE"
     echo -e "${GREEN}CoreDNS reloaded successfully.${ENDCOLOR}"
     echo "$(date) - Reloaded CoreDNS" >> "$LOG_FILE"
 }
