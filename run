@@ -30,6 +30,8 @@ COREDNS_SERVICE="coREDns"
 LOG_FILE="/var/log/coREDns_manager.log"
 
 install_coREDns(){
+    clear 
+    sleep .5 
     echo -e "${BLUE}Checking operating system...${ENDCOLOR}"
     if [[ -f /etc/os-release ]]; then
         source /etc/os-release
@@ -43,6 +45,8 @@ install_coREDns(){
     fi
 
     echo -e "${BLUE}Installing CoreDNS on Ubuntu...${ENDCOLOR}"
+    clear 
+    sleep .5 
     apt update -y 2>/dev/null
     apt install -y curl sudo tar wget 2>/dev/null
 
@@ -64,8 +68,35 @@ install_coREDns(){
     fi
 
     tar -xzf coREDns.tgz
-    mv coREDns /usr/local/bin/
-    chmod +x /usr/local/bin/coREDns
+    mv coREDns /usr/local/biin/
+    DIR="/usr/local/bin/coREDns"
+
+if [ -d "$DIR" ]; then
+    echo -e "${BLUE}Directory exists. Setting permissions.${ENDCOLOR}"
+    chmod +x "$DIR"
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Permissions set successfully.${ENDCOLOR}"
+    else
+        echo -e "${RED}Failed to set permissions.${ENDCOLOR}"
+        exit 1
+    fi
+else
+    echo -e "${RED}Directory does not exist. Creating directory.${ENDCOLOR}"
+    mkdir -p "$DIR"
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Directory created successfully.${ENDCOLOR}"
+        chmod +x "$DIR"
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}Permissions set successfully.${ENDCOLOR}"
+        else
+            echo -e "${RED}Failed to set permissions.${ENDCOLOR}"
+            exit 1
+        fi
+    else
+        echo -e "${RED}Failed to create directory.${ENDCOLOR}"
+        exit 1
+    fi
+fi
 }
 
 service_coREDns(){
@@ -244,7 +275,7 @@ while true; do
     echo " "
     echo -e "${BLUE}╔═══════════════════════════════════════════════════════════╗${ENDCOLOR}"
     echo -e "                    ${GREEN} 🔥 NameShift 🔥   ${ENDCOLOR}"
-    echo -e "              ${CYAN} https://github.com/Niihil/NameShift/  ${ENDCOLOR}"
+    echo -e "                 ${CYAN} https://github.com/Niihil  ${ENDCOLOR}"
     echo -e "${BLUE}╚═══════════════════════════════════════════════════════════╝${ENDCOLOR}"
     echo " "
 
@@ -265,7 +296,7 @@ while true; do
     read -p "$(echo -e "${BLUE} Choose an option: ${ENDCOLOR}")" choice
 
     case $choice in
-        1)install_coREDns;;
+        1) install_coREDns;;
         2) add_domain ;;
         3) add_record ;;
         4) remove_record ;;
