@@ -176,6 +176,8 @@ EOL
     log
     errors
     bind 0.0.0.0
+    cache 300
+    reload 
     file "$ZONE_DIR/db.$domain"
 }
 
@@ -188,21 +190,24 @@ fi
     systemctl restart coredns
 }
 
-add_record() { 
+add_record() {
   read -p "$(echo -e "${BLUE} Enter the domain name:  ${ENDCOLOR}")" domain
-  zone_file="$ZONE_DIR/db.$domain" 
-  
+  zone_file="$ZONE_DIR/db.$domain"
+
   if [[ ! -f "$zone_file" ]]; then
     echo -e "${RED}Domain does not exist.${ENDCOLOR}"
     return
   fi
-  
+
   read -p "${BLUE}Enter the record type (A, CNAME, MX, ...): ${ENDCOLOR}" type
   read -p "${BLUE}Enter the record name: ${ENDCOLOR}" name
   read -p "${BLUE}Enter the record value: ${ENDCOLOR}" value
 
-  if [[ "$type" == "MX" && ! "$value" =~ \.$ ]]; then
-    value="$value."
+  if [[ "$type" == "MX" ]]; then
+    if [[ ! "$value" =~ \.$ ]]; then
+      value="$value."
+    fi
+    value="10 $value"
   fi
 
   echo "$name    IN    $type    $value" >> "$zone_file"
