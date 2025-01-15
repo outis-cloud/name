@@ -188,23 +188,29 @@ fi
     systemctl restart coredns
 }
 
-add_record() {
-    read -p "$(echo -e "${BLUE} Enter the domain name:  ${ENDCOLOR}")" domain
-    zone_file="$ZONE_DIR/db.$domain"
+add_record() { 
+  read -p "$(echo -e "${BLUE} Enter the domain name:  ${ENDCOLOR}")" domain
+  zone_file="$ZONE_DIR/db.$domain" 
+  
+  if [[ ! -f "$zone_file" ]]; then
+    echo -e "${RED}Domain does not exist.${ENDCOLOR}"
+    return
+  fi
+  
+  read -p "${BLUE}Enter the record type (A, CNAME, MX, ...): ${ENDCOLOR}" type
+  read -p "${BLUE}Enter the record name: ${ENDCOLOR}" name
+  read -p "${BLUE}Enter the record value: ${ENDCOLOR}" value
 
-    if [[ ! -f "$zone_file" ]]; then
-        echo -e "${RED}Domain does not exist.${ENDCOLOR}"
-        return
-    fi
-    read -p "${BLUE}Enter the record type (A, CNAME, MX, ...): ${ENDCOLOR}" type
-    read -p "${BLUE}Enter the record name: ${ENDCOLOR}" name
-    read -p "${BLUE}Enter the record value: ${ENDCOLOR}" value
+  if [[ "$type" == "MX" && ! "$value" =~ \.$ ]]; then
+    value="$value."
+  fi
 
-
-    echo "$name    IN    $type    $value" >> "$zone_file"
-    echo -e "${GREEN}Record added successfully.${ENDCOLOR}"
-    echo "$(date) - Added record: $name $type $value to $domain" >> "$LOG_FILE"
+  echo "$name    IN    $type    $value" >> "$zone_file"
+  echo -e "${GREEN}Record added successfully.${ENDCOLOR}"
+  echo "$(date) - Added record: $name $type $value to $domain" >> "$LOG_FILE"
 }
+
+
 
 remove_record() {
     read -p "${BLUE}Enter the domain name: ${ENDCOLOR}" domain 
