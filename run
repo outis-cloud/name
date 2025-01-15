@@ -12,10 +12,6 @@ CYAN=$(echo -ne '\e[36m')
 MAGENTA=$(echo -ne '\e[35m')        
 PURPLE=$(echo -ne '\e[38;5;129m') 
 
-
-
-
-
 check_user_root(){
     if [ "$EUID" -ne 0 ]; then 
         echo -e ""
@@ -30,7 +26,7 @@ sleep 1;
 
 ZONE_DIR="/etc/coREDns/zones"
 COREFILE="/etc/coREDns/Corefile"
-COREDNS_SERVICE="coREDns"
+COREDNS_SERVICE="coredns"
 LOG_FILE="/var/log/coREDns_manager.log"
 
 install_coREDns(){
@@ -154,15 +150,15 @@ add_domain() {
 
     mkdir -p "$ZONE_DIR"
     cat <<EOL > "$zone_file"
-$TTL 3600
+\$TTL 3600
 @       IN      SOA     ns1.$domain. admin.$domain. (
                         $(date +%Y%m%d%H)
                         3600
                         1800
                         604800
                         86400 )
-        IN      NS      ns1.$domain.
-        IN      NS      ns2.$domain.
+@        IN      NS      ns1.$domain.
+@        IN      NS      ns2.$domain.
 ns1     IN      A       $ip
 ns2     IN      A       $ip
 @       IN      A       $ip
@@ -174,18 +170,23 @@ EOL
         echo "ns2     IN    AAAA    $ip" >> "$zone_file"
     fi
     if [[ ! -f "$COREFILE" ]]; then
-        echo -e "${YELLOW}Corefile not found. Creating a new one.${ENDCOLOR}"
-        echo ".:53 { log errors }" > "$COREFILE"
-    fi
-
-    echo "zone \"$domain\" { file \"$ZONE_DIR/db.$domain\"; }" >> "$COREFILE"
-    echo -e "${GREEN}Domain $domain added successfully.${ENDCOLOR}"
-    echo "$(date) - Added domain: $domain" >> "$LOG_FILE"
-
-    systemctl reload coREDns
+    echo -e "${YELLOW}Corefile not found. Creating a new one.${ENDCOLOR}"
+    cat << EOF > "$COREFILE"
+.:53 {
+    log
+    errors
+    bind 0.0.0.0
+    file "$ZONE_DIR/db.$domain"
 }
 
+zone "$domain" {
+    file "$ZONE_DIR/db.$domain"
+}
+EOF
+fi
 
+    systemctl restart coredns
+}
 
 add_record() {
     read -p "$(echo -e "${BLUE} Enter the domain name:  ${ENDCOLOR}")" domain
@@ -195,10 +196,10 @@ add_record() {
         echo -e "${RED}Domain does not exist.${ENDCOLOR}"
         return
     fi
+    read -p "${BLUE}Enter the record type (A, CNAME, MX, ...): ${ENDCOLOR}" type
+    read -p "${BLUE}Enter the record name: ${ENDCOLOR}" name
+    read -p "${BLUE}Enter the record value: ${ENDCOLOR}" value
 
-    read -p "Enter the record type (A, CNAME, etc.): " type
-    read -p "Enter the record name: " name
-    read -p "Enter the record value: " value
 
     echo "$name    IN    $type    $value" >> "$zone_file"
     echo -e "${GREEN}Record added successfully.${ENDCOLOR}"
@@ -206,7 +207,7 @@ add_record() {
 }
 
 remove_record() {
-    read -p "Enter the domain name: " domain
+    read -p "${BLUE}Enter the domain name: ${ENDCOLOR}" domain 
     read -p "$(echo -e "${BLUE} Enter the domain name: ${ENDCOLOR}")" domain
     zone_file="$ZONE_DIR/db.$domain"
 
@@ -249,7 +250,7 @@ list_domains() {
 }
 
 reload_coREDns() {
-    systemctl reload "$COREDNS_SERVICE"
+    systemctl restart "$COREDNS_SERVICE"
     echo -e "${GREEN}CoreDNS reloaded successfully.${ENDCOLOR}"
     echo "$(date) - Reloaded CoreDNS" >> "$LOG_FILE"
 }
