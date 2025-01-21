@@ -299,14 +299,15 @@ while true; do
     echo -e "${RED}============================ ${ENDCOLOR}"
     echo -e "${RED}1.${ENDCOLOR}  Installing NameShift ${ENDCOLOR}"
     echo -e "${RED}2.${ENDCOLOR}  Add a new domain${ENDCOLOR}"
-    echo -e "${RED}3.${ENDCOLOR}  Add a DNS record${ENDCOLOR}"
-    echo -e "${RED}4.${ENDCOLOR}  Remove a DNS record${ENDCOLOR}"
-    echo -e "${RED}5.${ENDCOLOR}  List all domains${ENDCOLOR}"
-    echo -e "${RED}6.${ENDCOLOR}  Reload CoreDNS${ENDCOLOR}"
-    echo -e "${RED}7.${ENDCOLOR}  Backup zones${ENDCOLOR}"
-    echo -e "${RED}8.${ENDCOLOR}  Restore zones${ENDCOLOR}"
-    echo -e "${RED}9.${ENDCOLOR}  View logs${ENDCOLOR}"
-    echo -e "${RED}10.${ENDCOLOR} Exit${ENDCOLOR}"
+    echo -e "${RED}3.${ENDCOLOR}  Multi Server${ENDCOLOR}"
+    echo -e "${RED}4.${ENDCOLOR}  Add a DNS record${ENDCOLOR}"
+    echo -e "${RED}5.${ENDCOLOR}  Remove a DNS record${ENDCOLOR}"
+    echo -e "${RED}6.${ENDCOLOR}  List all domains${ENDCOLOR}"
+    echo -e "${RED}7.${ENDCOLOR}  Reload CoreDNS${ENDCOLOR}"
+    echo -e "${RED}8.${ENDCOLOR}  Backup zones${ENDCOLOR}"
+    echo -e "${RED}9.${ENDCOLOR}  Restore zones${ENDCOLOR}"
+    echo -e "${RED}10.${ENDCOLOR}  View logs${ENDCOLOR}"
+    echo -e "${RED}11.${ENDCOLOR} Exit${ENDCOLOR}"
     echo -e "${RED}============================ ${ENDCOLOR}"
     echo " "
 
@@ -314,15 +315,16 @@ while true; do
 
     case $choice in
         1) install_coREDns ;;
-        2) add_domain ; sleep 1 ;  service_coREDns;;
-        3) add_record ;;
-        4) remove_record ;;
-        5) list_domains ;;
-        6) reload_coREDns ;;
-        7) backup_zones ;;
-        8) restore_zones ;;
-        9) view_logs ;;
-        10) exit ;;
+        2) multi ;;
+        3) add_domain ; sleep 1 ;  service_coREDns;;
+        4) add_record ;;
+        5) remove_record ;;
+        6) list_domains ;;
+        7) reload_coREDns ;;
+        8) backup_zones ;;
+        9) restore_zones ;;
+        10) view_logs ;;
+        11) exit ;;
         *) echo -e "${RED}Invalid option. Please try again.${ENDCOLOR}" ;;
     esac
 
