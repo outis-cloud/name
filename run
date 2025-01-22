@@ -315,7 +315,7 @@ while true; do
 
     case $choice in
         1) install_coREDns ;;
-        2) multi ;;
+        2) multi ; sleep 2 ;  exit;;
         3) add_domain ; sleep 1 ;  service_coREDns;;
         4) add_record ;;
         5) remove_record ;;
