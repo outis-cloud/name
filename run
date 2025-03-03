@@ -24,6 +24,13 @@ clear
 check_user_root
 sleep 1;
 
+kill_port() {
+    PID=$(lsof -t -i:53)
+    if [ -n "$PID" ]; then
+        kill -9 $PID
+    fi
+}
+
 ZONE_DIR="/etc/coREDns/zones"
 COREFILE="/etc/coREDns/Corefile"
 COREDNS_SERVICE="coredns"
@@ -60,7 +67,7 @@ install_coREDns(){
     echo -e "${BLUE}Latest CoreDNS version: ${COREDNS_VERSION}${ENDCOLOR}"
     echo -e "${BLUE}Downloading CoreDNS...${ENDCOLOR}"
 
-    wget "https://github.com/coREDns/coREDns/releases/download/v${COREDNS_VERSION}/coREDns_${COREDNS_VERSION}_linux_amd64.tgz" -O /tmp/coredns.tgz
+    wget "https://github.com/coREDns/coREDns/releases/download/v${COREDNS_VERSION}/coredns_${COREDNS_VERSION}_linux_amd64.tgz" -O /tmp/coredns.tgz
 
     if [[ $? -ne 0 ]]; then
         echo -e "${RED}Failed to download CoreDNS.${ENDCOLOR}"
@@ -69,36 +76,10 @@ install_coREDns(){
 
     tar -xzf /tmp/coredns.tgz
     mv /tmp/coredns /usr/local/bin/
-    DIR="/usr/local/bin/coredns"
-
-if [ -d "$DIR" ]; then
-    echo -e "${BLUE}Directory exists. Setting permissions.${ENDCOLOR}"
-    chmod +x "$DIR"
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}Permissions set successfully.${ENDCOLOR}"
-    else
-        echo -e "${RED}Failed to set permissions.${ENDCOLOR}"
-        exit 1
-    fi
-else
-    echo -e "${RED}Directory does not exist. Creating directory.${ENDCOLOR}"
-    mkdir -p "$DIR"
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}Directory created successfully.${ENDCOLOR}"
-        chmod +x "$DIR"
-        if [ $? -eq 0 ]; then
-            echo -e "${GREEN}Permissions set successfully.${ENDCOLOR}"
-        else
-            echo -e "${RED}Failed to set permissions.${ENDCOLOR}"
-            exit 1
-        fi
-    else
-        echo -e "${RED}Failed to create directory.${ENDCOLOR}"
-        exit 1
-    fi
-fi
-rm -f /tmp/coredns.tgz
+    rm -f /tmp/coredns.tgz
+    kill_port
 }
+
 
 service_coREDns(){
     cat <<EOL > /etc/systemd/system/coredns.service
@@ -315,15 +296,15 @@ while true; do
 
     case $choice in
         1) install_coREDns ;;
-        2) multi ; sleep 2 ;  exit;;
-        3) add_domain ; sleep 1 ;  service_coREDns;;
+        2) add_domain ; sleep 1 ;  service_coREDns;;
+        3) multi ; sleep 2 ;  exit;;
         4) add_record ;;
         5) remove_record ;;
         6) list_domains ;;
         7) reload_coREDns ;;
         8) backup_zones ;;
         9) restore_zones ;;
-        10) view_logs ;;
+        10)view_logs ;;
         11) exit ;;
         *) echo -e "${RED}Invalid option. Please try again.${ENDCOLOR}" ;;
     esac
