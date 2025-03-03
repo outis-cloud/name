@@ -199,7 +199,6 @@ add_record() {
 
 
 remove_record() {
-    read -p "${BLUE}Enter the domain name: ${ENDCOLOR}" domain 
     read -p "$(echo -e "${BLUE} Enter the domain name: ${ENDCOLOR}")" domain
     zone_file="$ZONE_DIR/db.$domain"
 
@@ -215,6 +214,7 @@ remove_record() {
     sed -i "/$record/d" "$zone_file"
     echo -e "${GREEN}Record removed successfully.${ENDCOLOR}"
     echo "$(date) - Removed record: $record from $domain" >> "$LOG_FILE"
+    systemctl  restart  coredns
 }
 
 list_domains() {
@@ -255,7 +255,7 @@ backup_zones() {
 }
 
 restore_zones() {
-    read -p "$(echo -e "${BLUE} Choose an option: ${ENDCOLOR}")" backup_file
+    read -p "$(echo -e "${BLUE} Enter the backup file path: ${ENDCOLOR}")" backup_file
     if [[ -f "$backup_file" ]]; then
         tar -xzf "$backup_file" -C /
         echo -e "${GREEN}Zones restoRED successfully.${ENDCOLOR}"
@@ -270,10 +270,12 @@ view_logs() {
 }
 
 while true; do
+    sleep 0.6 
+    clear 
     echo " "
     echo -e "${BLUE}╔═══════════════════════════════════════════════════════════╗${ENDCOLOR}"
     echo -e "                    ${GREEN} 🔥 NameShift 🔥   ${ENDCOLOR}"
-    echo -e "                 ${CYAN} https://github.com/Niihil  ${ENDCOLOR}"
+    echo -e "                 ${CYAN} https://github.com/Guilt92  ${ENDCOLOR}"
     echo -e "${BLUE}╚═══════════════════════════════════════════════════════════╝${ENDCOLOR}"
     echo " "
 
@@ -306,7 +308,7 @@ while true; do
         9) restore_zones ;;
         10)view_logs ;;
         11) exit ;;
-        *) echo -e "${RED}Invalid option. Please try again.${ENDCOLOR}" ;;
+        *) echo -e "${RED}Invalid option. Please try again.${ENDCOLOR}" ; sleep 1.5 ;;
     esac
 
     read -p "$(echo -e "${BLUE}Press Enter to continue... ${ENDCOLOR}")" key
