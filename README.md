@@ -10,7 +10,7 @@ NameShift is a DNS management script designed for the installation, configuratio
 - List all domains: List all the domains that have been configured
 - Backup zones: Create a backup of DNS zones.
 - Restore zones: Restore DNS settings from a previous backup.
-
+- Multi Dns Server:  Comming Soon
 
 # Use the script
 
