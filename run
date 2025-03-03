@@ -265,10 +265,6 @@ restore_zones() {
     fi
 }
 
-view_logs() {
-    less "$LOG_FILE"
-}
-
 while true; do
     sleep 0.6 
     clear 
