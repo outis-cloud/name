@@ -1,6 +1,6 @@
 # NameShift: DNS Management Script
 
-NameShift is a DNS management script designed for the installation, configuration, and management of CoreDNS. This script provides various features such as adding domains, creating DNS records, viewing logs, and backing up CoreDNS settings.
+NameShift is a DNS management script designed for the installation, configuration, and management of CoreDNS. This script provides various features such as adding domains, creating DNS records  and backing up CoreDNS settings.
 
 ## Features
 
