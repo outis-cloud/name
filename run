@@ -217,6 +217,25 @@ remove_record() {
     systemctl  restart  coredns
 }
 
+ZONE_DIR="/etc/coREDns/zones/"
+valid_file_db() {
+    clear 
+  for zone_file in "$ZONE_DIR"/db.*; do
+    if [[ -f "$zone_file" ]]; then
+      domain=$(echo "$zone_file" | cut -d"." -f 2,3)
+
+      if named-checkzone "$domain" "$zone_file" ; then
+        echo -e "${BLUE}$domain ${ENDCOLOR} ${GREEN}: Ok .${ENDCOLOR}\n"
+        echo -e "------------------"
+      else
+        echo -e "${RED}$domain: Not Ok!${ENDCOLOR}\n"
+      fi
+    else
+      echo -e "${RED}File $zone_file not found!${ENDCOLOR}"
+    fi
+  done
+}
+
 list_domains() {
     echo -e "${GREEN}Available domains:${ENDCOLOR}"
     domains=$(grep "zone" "$COREFILE" | awk '{print $2}' | tr -d '\";')
@@ -285,7 +304,7 @@ while true; do
     echo -e "${RED}7.${ENDCOLOR}  Reload CoreDNS${ENDCOLOR}"
     echo -e "${RED}8.${ENDCOLOR}  Backup zones${ENDCOLOR}"
     echo -e "${RED}9.${ENDCOLOR}  Restore zones${ENDCOLOR}"
-    echo -e "${RED}10.${ENDCOLOR}  View logs${ENDCOLOR}"
+    echo -e "${RED}10.${ENDCOLOR} Check Format Db Domains ${ENDCOLOR}"
     echo -e "${RED}11.${ENDCOLOR} Exit${ENDCOLOR}"
     echo -e "${RED}============================ ${ENDCOLOR}"
     echo " "
@@ -302,7 +321,7 @@ while true; do
         7) reload_coREDns ;;
         8) backup_zones ;;
         9) restore_zones ;;
-        10)view_logs ;;
+        10) valid_file_db;;
         11) exit ;;
         *) echo -e "${RED}Invalid option. Please try again.${ENDCOLOR}" ; sleep 1.5 ;;
     esac
