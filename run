@@ -56,6 +56,8 @@ install_coREDns(){
     sleep .5 
     apt update -y 2>/dev/null
     apt install -y curl  tar wget 2>/dev/null
+    sleep 1
+    clear
 
     COREDNS_VERSION=$(curl -s https://github.com/coredns/coredns/releases | grep -oP '(?<=/coredns/coredns/releases/tag/v)[0-9]+\.[0-9]+\.[0-9]+' | head -1)
 
