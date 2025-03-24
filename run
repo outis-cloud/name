@@ -284,6 +284,22 @@ restore_zones() {
     fi
 }
 
+node2(){
+
+    clear 
+    echo -e "${CYAN}Please enter the details for the second server.${ENDCOLOR}"
+    read -p "$(echo -e ${YELLOW}Enter the second server IP : ${ENDCOLOR})" SECONDARY_DNS_IP
+    read -p "$(echo -e ${YELLOW}Enter the SSH username for the second server: ${ENDCOLOR})" SSH_USER
+
+}
+
+
+multi(){
+
+}
+
+
+
 while true; do
     sleep 0.6 
     clear 
