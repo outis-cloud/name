@@ -158,9 +158,7 @@ EOL
 .:53 {
     log
     errors
-    bind 0.0.0.0
-    cache 300
-    reload 
+    cache 600
     file "$ZONE_DIR/db.$domain"
 }
 
