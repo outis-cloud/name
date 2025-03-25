@@ -12,5 +12,5 @@ This script is a DNS management solution that installs and configures CoreDNS, a
 # Usage
 
 ```
-curl -sLO https://raw.githubusercontent.com/Niihil/NameShift/main/run && sudo bash run
+curl -sLO https://raw.githubusercontent.com/Guilt92/NameShift/main/run && sudo bash run
 ```
