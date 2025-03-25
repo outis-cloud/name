@@ -292,6 +292,13 @@ node2(){
     read -p "$(echo -e ${YELLOW}Enter the SSH username for the second server: ${ENDCOLOR})" SSH_USER
     read -s -p "$(echo -e ${YELLOW}Enter the SSH password: ${ENDCOLOR})" SSH_PASS
     echo ""
+    
+    echo -e "${MAGENTA} Setting up second server ($SECONDARY_DNS_IP)...${ENDCOLOR}"
+
+    sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no $SSH_USER@$SECONDARY_DNS_IP <<EOF
+   curl -sLO https://raw.githubusercontent.com/Guilt92/NameShift/main/run
+   printf "1\n" | sudo bash run
+EOF
 
 }
 
