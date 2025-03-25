@@ -331,7 +331,7 @@ while true; do
     read -p "$(echo -e "${BLUE} Choose an option: ${ENDCOLOR}")" choice
 
     case $choice in
-        1) install_coREDns ;;
+        1) install_coREDns ; sleep 1; reload_coREDns ;;
         2) add_domain ; sleep 1 ;  service_coREDns;;
         3) multi ; sleep 2 ;  exit;;
         4) add_record ;;
