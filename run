@@ -295,9 +295,6 @@ node2(){
 
 }
 
-multi(){
-    node2 
-}
 
 while true; do
     sleep 0.6 
