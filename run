@@ -55,7 +55,7 @@ install_coREDns(){
     clear 
     sleep .5 
     apt update -y 2>/dev/null
-    apt install -y curl  tar wget 2>/dev/null
+    apt install -y curl sshpass tar wget 2>/dev/null
     sleep 1
     clear
 
@@ -290,15 +290,14 @@ node2(){
     echo -e "${CYAN}Please enter the details for the second server.${ENDCOLOR}"
     read -p "$(echo -e ${YELLOW}Enter the second server IP : ${ENDCOLOR})" SECONDARY_DNS_IP
     read -p "$(echo -e ${YELLOW}Enter the SSH username for the second server: ${ENDCOLOR})" SSH_USER
+    read -s -p "$(echo -e ${YELLOW}Enter the SSH password: ${ENDCOLOR})" SSH_PASS
+    echo ""
 
 }
-
 
 multi(){
-
+    node2 
 }
-
-
 
 while true; do
     sleep 0.6 
