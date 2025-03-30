@@ -285,10 +285,11 @@ restore_zones() {
 }
 
 download_geoip() {
-    local license_key="$1"
+    echo -e "${YELLOW}Please enter your License Key:${ENDCOLOR}"
+    read license_key
 
     if [[ -z "$license_key" ]]; then
-        echo "License Key is required!"
+        echo -e "${RED}License Key is required!${ENDCOLOR}"
         return 1
     fi
 
@@ -296,33 +297,31 @@ download_geoip() {
     local geoip_file="geolite2-country.tar.gz"
     local download_url="https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key=${license_key}&suffix=tar.gz"
 
-    echo "Downloading GeoIP database..."
+    echo -e "${CYAN}Downloading GeoIP database...${ENDCOLOR}"
 
     mkdir -p "$geoip_dir"
-    
     cd "$geoip_dir"
     if [[ $? -ne 0 ]]; then
-        echo "Failed to enter $geoip_dir"
+        echo -e "${RED}Failed to enter $geoip_dir${ENDCOLOR}"
         return 1
     fi
 
     wget --quiet --show-progress -O "$geoip_file" "$download_url"
     if [[ $? -ne 0 ]]; then
-        echo "Failed to download GeoIP database."
+        echo -e "${RED}Failed to download GeoIP database.${ENDCOLOR}"
         return 1
     fi
 
-    echo " Extracting GeoIP database..."
+    echo -e "${MAGENTA}Extracting GeoIP database...${ENDCOLOR}"
 
     tar -xzf "$geoip_file" --strip-components=1
     if [[ $? -ne 0 ]]; then
-        echo "Extraction failed."
+        echo -e "${RED}Extraction failed.${ENDCOLOR}"
         return 1
     fi
 
-    echo "GeoIP database updated successfully!"
+    echo -e "${GREEN}GeoIP database updated successfully!${ENDCOLOR}"
 }
-
 
 node2(){
 
