@@ -284,6 +284,46 @@ restore_zones() {
     fi
 }
 
+download_geoip() {
+    local license_key="$1"
+
+    if [[ -z "$license_key" ]]; then
+        echo "License Key is required!"
+        return 1
+    fi
+
+    local geoip_dir="/etc/coredns/geoip"
+    local geoip_file="geolite2-country.tar.gz"
+    local download_url="https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key=${license_key}&suffix=tar.gz"
+
+    echo "Downloading GeoIP database..."
+
+    mkdir -p "$geoip_dir"
+    
+    cd "$geoip_dir"
+    if [[ $? -ne 0 ]]; then
+        echo "Failed to enter $geoip_dir"
+        return 1
+    fi
+
+    wget --quiet --show-progress -O "$geoip_file" "$download_url"
+    if [[ $? -ne 0 ]]; then
+        echo "Failed to download GeoIP database."
+        return 1
+    fi
+
+    echo " Extracting GeoIP database..."
+
+    tar -xzf "$geoip_file" --strip-components=1
+    if [[ $? -ne 0 ]]; then
+        echo "Extraction failed."
+        return 1
+    fi
+
+    echo "GeoIP database updated successfully!"
+}
+
+
 node2(){
 
     clear 
