@@ -284,44 +284,28 @@ restore_zones() {
     fi
 }
 
-download_geoip() {
-    echo -e "${YELLOW}Please enter your License Key:${ENDCOLOR}"
-    read license_key
-
-    if [[ -z "$license_key" ]]; then
-        echo -e "${RED}License Key is required!${ENDCOLOR}"
-        return 1
-    fi
-
+set_geoip() {
     local geoip_dir="/etc/coredns/geoip"
-    local geoip_file="geolite2-country.tar.gz"
-    local download_url="https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key=${license_key}&suffix=tar.gz"
+    local geoip_file="GeoCountry.mmdb"
 
-    echo -e "${CYAN}Downloading GeoIP database...${ENDCOLOR}"
+    if [[ -f "$geoip_file" ]]; then
+        echo -e "${MAGENTA}GeoIP database found in the project root, copying to $geoip_dir...${ENDCOLOR}"
 
-    mkdir -p "$geoip_dir"
-    cd "$geoip_dir"
-    if [[ $? -ne 0 ]]; then
-        echo -e "${RED}Failed to enter $geoip_dir${ENDCOLOR}"
+        mkdir -p "$geoip_dir"
+
+        cp "$geoip_file" "$geoip_dir/"
+        if [[ $? -ne 0 ]]; then
+            echo -e "${RED}Failed to copy GeoIP database.${ENDCOLOR}"
+            return 1
+        fi
+
+        echo -e "${GREEN}GeoIP database copied successfully!${ENDCOLOR}"
+    else
+        echo -e "${RED}GeoIP database not found in the project root.${ENDCOLOR}"
         return 1
     fi
-
-    wget --quiet --show-progress -O "$geoip_file" "$download_url"
-    if [[ $? -ne 0 ]]; then
-        echo -e "${RED}Failed to download GeoIP database.${ENDCOLOR}"
-        return 1
-    fi
-
-    echo -e "${MAGENTA}Extracting GeoIP database...${ENDCOLOR}"
-
-    tar -xzf "$geoip_file" --strip-components=1
-    if [[ $? -ne 0 ]]; then
-        echo -e "${RED}Extraction failed.${ENDCOLOR}"
-        return 1
-    fi
-
-    echo -e "${GREEN}GeoIP database updated successfully!${ENDCOLOR}"
 }
+
 
 node2(){
 
