@@ -284,6 +284,21 @@ restore_zones() {
     fi
 }
 
+add_config_to_coredns() {
+
+    awk -v geoip_config="# GeoIP configuration for CoreDNS\ngeoip /etc/coREDns/geoip/GeoCountry.mmdb {\n    country yes\n}" '
+        /cache 600/ { print; print geoip_config; next }
+        { print }
+    ' "$coredns_config_file" > "$coredns_config_file.new" && mv "$coredns_config_file.new" "$coredns_config_file"
+
+    if [[ $? -eq 0 ]]; then
+        echo -e "${GREEN}GeoIP configuration added successfully to $coredns_config_file${ENDCOLOR}"
+    else
+        echo -e "${RED}Failed to update $coredns_config_file${ENDCOLOR}"
+        return 1
+    fi
+}
+
 set_geoip() {
     local geoip_dir="/etc/coREDns/geoip"
     local geoip_file="GeoCountry.mmdb"
@@ -307,25 +322,6 @@ set_geoip() {
         return 1
     fi
 }
-
-
-add_config_to_coredns() {
-
-    awk -v geoip_config="# GeoIP configuration for CoreDNS\ngeoip /etc/coREDns/geoip/GeoCountry.mmdb {\n    country yes\n}" '
-        /cache 600/ { print; print geoip_config; next }
-        { print }
-    ' "$coredns_config_file" > "$coredns_config_file.new" && mv "$coredns_config_file.new" "$coredns_config_file"
-
-    if [[ $? -eq 0 ]]; then
-        echo -e "${GREEN}GeoIP configuration added successfully to $coredns_config_file${ENDCOLOR}"
-    else
-        echo -e "${RED}Failed to update $coredns_config_file${ENDCOLOR}"
-        return 1
-    fi
-}
-
-
-
 
 node2(){
 
