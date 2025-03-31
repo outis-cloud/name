@@ -323,6 +323,36 @@ set_geoip() {
     fi
 }
 
+add_country_to_coredns() {
+    local coredns_config_file="/etc/coredns/Corefile"
+    
+    echo "Enter the country code (e.g., IR for Iran): "
+    read country_code
+    echo "Enter the destination IP for $country_code: "
+    read destination_ip
+
+    if [[ -z "$country_code" || -z "$destination_ip" ]]; then
+        echo "Country code and destination IP cannot be empty!"
+        return 1
+    fi
+
+    local geoip_position=$(awk '/# GeoIP configuration for CoreDNS/ {print NR}' "$coredns_config_file")
+    
+    if [[ -z "$geoip_position" ]]; then
+        echo "GeoIP section not found. Adding the new country settings at the end."
+        geoip_position=$(wc -l < "$coredns_config_file")  
+    fi
+
+    echo -e "\n# Country-based forwarding for $country_code" >> "$coredns_config_file"
+    echo "country \"$country_code\" {" >> "$coredns_config_file"
+    echo "    forward . $destination_ip" >> "$coredns_config_file"
+    echo "}" >> "$coredns_config_file"
+    
+    echo "Country-based forwarding for $country_code added successfully."
+}
+
+
+
 node2(){
 
     clear 
@@ -363,7 +393,9 @@ while true; do
     echo -e "${RED}8.${ENDCOLOR}  Backup zones${ENDCOLOR}"
     echo -e "${RED}9.${ENDCOLOR}  Restore zones${ENDCOLOR}"
     echo -e "${RED}10.${ENDCOLOR} Check Format Db Domains ${ENDCOLOR}"
-    echo -e "${RED}11.${ENDCOLOR} Exit${ENDCOLOR}"
+    echo -e "${RED}11.${ENDCOLOR} Add GeoIP  ${ENDCOLOR}"
+    echo -e "${RED}12.${ENDCOLOR} Add Country To GeoIP${ENDCOLOR}"
+    echo -e "${RED}13.${ENDCOLOR} Exit${ENDCOLOR}"
     echo -e "${RED}============================ ${ENDCOLOR}"
     echo " "
 
@@ -380,7 +412,9 @@ while true; do
         8) backup_zones ;;
         9) restore_zones ;;
         10) valid_file_db;;
-        11) exit ;;
+        11) set_geoip ; sleep 1 ; reload_coREDns ;;
+        12) add_country_to_coredns ; sleep 1 ; reload_coREDns ;;
+        13) exit ;;
         *) echo -e "${RED}Invalid option. Please try again.${ENDCOLOR}" ; sleep 1.5 ;;
     esac
 
