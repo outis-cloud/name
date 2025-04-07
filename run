@@ -304,7 +304,9 @@ set_geoip() {
         echo -e "${MAGENTA}GeoIP database found in the project root, copying to $geoip_dir...${ENDCOLOR}"
 
         mkdir -p "$geoip_dir"
-
+        
+        rsync --progress "$geoip_file" "$geoip_dir/"
+        
         cp "$geoip_file" "$geoip_dir/"
         if [[ $? -ne 0 ]]; then
             echo -e "${RED}Failed to copy GeoIP database.${ENDCOLOR}"
