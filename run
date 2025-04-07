@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Author:   OuTiS
+# Author: OuTiS
 
 ORANGE=$(echo -ne '\e[38;5;214m')  
 BLUE=$(echo -ne '\e[94m')           
@@ -81,7 +81,6 @@ install_coREDns(){
     rm -f /tmp/coredns.tgz
     kill_port
 }
-
 
 service_coREDns(){
     cat <<EOL > /etc/systemd/system/coredns.service
@@ -195,8 +194,6 @@ add_record() {
   echo -e "${GREEN}Record added successfully.${ENDCOLOR}"
   echo "$(date) - Added record: $name $type $value to $domain" >> "$LOG_FILE"
 }
-
-
 
 remove_record() {
     read -p "$(echo -e "${BLUE} Enter the domain name: ${ENDCOLOR}")" domain
@@ -351,8 +348,6 @@ add_country_to_coredns() {
     echo "Country-based forwarding for $country_code added successfully."
 }
 
-
-
 node2(){
 
     clear 
@@ -371,7 +366,6 @@ EOF
 
 }
 
-
 while true; do
     sleep 0.6 
     clear 
@@ -381,7 +375,6 @@ while true; do
     echo -e "                 ${CYAN} https://github.com/Guilt92  ${ENDCOLOR}"
     echo -e "${BLUE}╚═══════════════════════════════════════════════════════════╝${ENDCOLOR}"
     echo " "
-
     echo -e "${RED}============================ ${ENDCOLOR}"
     echo -e "${RED}1.${ENDCOLOR}  Installing NameShift ${ENDCOLOR}"
     echo -e "${RED}2.${ENDCOLOR}  Add a new domain${ENDCOLOR}"
@@ -420,4 +413,3 @@ while true; do
 
     read -p "$(echo -e "${BLUE}Press Enter to continue... ${ENDCOLOR}")" key
 done
-
