@@ -284,12 +284,13 @@ restore_zones() {
 }
 
 add_config_to_coredns() {
-   
+
+    coredns_config_file="/etc/coredns/Corefile" 
+    
     if [[ -z "$coredns_config_file" || ! -f "$coredns_config_file" ]]; then
         echo -e "${RED}CoreDNS config file not found at $coredns_config_file${ENDCOLOR}"
         return 1
     fi
-    
     awk -v geoip_config="# GeoIP configuration for CoreDNS\ngeoip /etc/coREDns/geoip/GeoCountry.mmdb {\n    country yes\n}" '
         /cache 600/ { print; print geoip_config; next }
         { print }
