@@ -12,7 +12,7 @@ CYAN=$(echo -ne '\e[36m')
 MAGENTA=$(echo -ne '\e[35m')        
 PURPLE=$(echo -ne '\e[38;5;129m') 
 
-coredns_config_file="/etc/coredns/Corefile"
+coredns_config_file="/etc/coREDns/Corefile"
 
 check_user_root(){
     if [ "$EUID" -ne 0 ]; then 
@@ -285,7 +285,7 @@ restore_zones() {
 
 add_config_to_coredns() {
 
-    coredns_config_file="/etc/coredns/Corefile" 
+    coredns_config_file="/etc/coREDns/Corefile" 
     
     if [[ -z "$coredns_config_file" || ! -f "$coredns_config_file" ]]; then
         echo -e "${RED}CoreDNS config file not found at $coredns_config_file${ENDCOLOR}"
