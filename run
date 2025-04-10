@@ -283,26 +283,8 @@ restore_zones() {
     fi
 }
 
-add_config_to_coredns() {
-
-    coredns_config_file="/etc/coREDns/Corefile" 
-    
-    if [[ -z "$coredns_config_file" || ! -f "$coredns_config_file" ]]; then
-        echo -e "${RED}CoreDNS config file not found at $coredns_config_file${ENDCOLOR}"
-        return 1
-    fi
-    awk -v geoip_config="# GeoIP configuration for CoreDNS\ngeoip /etc/coREDns/geoip/GeoCountry.mmdb {\n    country yes\n}" '
-        /cache 600/ { print; print geoip_config; next }
-        { print }
-    ' "$coredns_config_file" > "$coredns_config_file.new" && mv "$coredns_config_file.new" "$coredns_config_file"
-
-    if [[ $? -eq 0 ]]; then
-        echo -e "${GREEN}GeoIP configuration added successfully to $coredns_config_file${ENDCOLOR}"
-    else
-        echo -e "${RED}Failed to update $coredns_config_file${ENDCOLOR}"
-        return 1
-    fi
-}
+#add_config_to_coredns() {
+#}
 
 set_geoip() {
     sleep 0.5 
