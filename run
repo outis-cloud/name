@@ -284,32 +284,6 @@ restore_zones() {
 }
 
 
-set_geoip() {
-    sleep 0.5 
-    clear 
-    local geoip_dir="/etc/coREDns/geoip"
-    local geoip_file="GeoCountry.mmdb"
-
-    if [[ -f "$geoip_file" ]]; then
-        echo -e "${MAGENTA}GeoIP database found in the project root, copying to $geoip_dir...${ENDCOLOR}"
-
-        mkdir -p "$geoip_dir"
-        
-        rsync --progress "$geoip_file" "$geoip_dir/"
-        
-        if [[ $? -ne 0 ]]; then
-            echo -e "${RED}Failed to copy GeoIP database.${ENDCOLOR}"
-            return 1
-        fi
-
-        add_config_to_coredns
-
-        echo -e "${GREEN}GeoIP database copied successfully!${ENDCOLOR}"
-    else
-        echo -e "${RED}GeoIP database not found in the project root.${ENDCOLOR}"
-        return 1
-    fi
-}
 
 
 node2(){
