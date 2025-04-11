@@ -17,4 +17,4 @@ curl -sLO https://raw.githubusercontent.com/Guilt92/NameShift/main/run && sudo b
 
 #### 8. Monitoring & Analytics
 - [ ] Monitoring Traffic.
-- [ ] Add GeoIp 
+- [ ] Add GeoIp ( Rust )

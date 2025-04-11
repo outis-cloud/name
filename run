@@ -324,9 +324,7 @@ while true; do
     echo -e "${RED}8.${ENDCOLOR}  Backup zones${ENDCOLOR}"
     echo -e "${RED}9.${ENDCOLOR}  Restore zones${ENDCOLOR}"
     echo -e "${RED}10.${ENDCOLOR} Check Format Db Domains ${ENDCOLOR}"
-    echo -e "${RED}11.${ENDCOLOR} Add GeoIP  ${ENDCOLOR}"
-    echo -e "${RED}12.${ENDCOLOR} Add Country To GeoIP${ENDCOLOR}"
-    echo -e "${RED}13.${ENDCOLOR} Exit${ENDCOLOR}"
+    echo -e "${RED}11.${ENDCOLOR} Exit${ENDCOLOR}"
     echo -e "${RED}============================ ${ENDCOLOR}"
     echo " "
 
@@ -343,9 +341,7 @@ while true; do
         8) backup_zones ;;
         9) restore_zones ;;
         10) valid_file_db;;
-        11) set_geoip ; sleep 1 ; reload_coREDns ;;
-        12) add_country_to_coredns ; sleep 1 ; reload_coREDns ;;
-        13) exit ;;
+        11) exit ;;
         *) echo -e "${RED}Invalid option. Please try again.${ENDCOLOR}" ; sleep 1.5 ;;
     esac
 
