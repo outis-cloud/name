@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tokio::net::TcpListener;
-use tokio::io::{AsyncReadExt, AsyncWriteExt}; 
-
+use tokio::io::AsyncWriteExt; 
+use maxminddb::geoip2;
 
 #[derive(Deserialize, Serialize, Debug)]
 struct IpGeoData {
@@ -18,9 +18,7 @@ struct GeoRouting {
 impl GeoRouting {
     fn new() -> Self {
         let mut geo_data = HashMap::new();
-        geo_data.insert("IR".to_string(), "ip".to_string());
-        geo_data.insert("DE".to_string(), "ip".to_string());
-        geo_data.insert("IN".to_string(), "ip".to_string());
+        geo_data.insert("IR".to_string(), "8.8.8.8".to_string());
         GeoRouting { geo_data }
     }
 
@@ -30,19 +28,23 @@ impl GeoRouting {
     }
 }
 
+
 async fn handle_request(mut stream: tokio::net::TcpStream, geo_routing: &GeoRouting) {
     let mut buffer = [0; 1024];
     let _ = stream.peek(&mut buffer).await;
 
-    let country = "US"; 
+    let country = "IR"; 
+
+    
+    let reader = maxminddb::Reader::open_readfile("./GeoCountry.mmdb").unwrap();
 
     if let Some(server) = geo_routing.route_request(country) {
         let message = format!("Redirecting to: {}", server);
         let _ = stream.write_all(message.as_bytes())
             .await
-            .map_err(|e| eprintln!("Failed to respond: {:?}", e));
+            .map_err(|ـ| "Failed to respond");
     } else {
-        let _ = stream.write_all(b"No route available").await;
+        let _ = stream.write_all("No route available".as_bytes()).await;
     }
 }
 
