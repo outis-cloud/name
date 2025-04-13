@@ -1,8 +1,10 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tokio::net::TcpListener;
-use tokio::io::AsyncWriteExt; 
-use maxminddb::geoip2;
+use tokio::io::AsyncWriteExt;
+use maxminddb::{geoip2, Reader};
+
+use std::sync::Arc;
 
 #[derive(Deserialize, Serialize, Debug)]
 struct IpGeoData {
@@ -12,7 +14,7 @@ struct IpGeoData {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 struct GeoRouting {
-    geo_data: HashMap<String, String>, 
+    geo_data: HashMap<String, String>,
 }
 
 impl GeoRouting {
@@ -22,36 +24,59 @@ impl GeoRouting {
         GeoRouting { geo_data }
     }
 
-  
     fn route_request(&self, country: &str) -> Option<String> {
         self.geo_data.get(country).cloned()
     }
 }
 
-
-async fn handle_request(mut stream: tokio::net::TcpStream, geo_routing: &GeoRouting) {
+async fn handle_request(
+    mut stream: tokio::net::TcpStream,
+    geo_routing: Arc<GeoRouting>,
+    geoip_reader: Arc<Reader<Vec<u8>>>,
+) {
     let mut buffer = [0; 1024];
     let _ = stream.peek(&mut buffer).await;
 
-    let country = "IR"; 
+    let ip = match stream.peer_addr() {
+        Ok(addr) => addr.ip(),
+        Err(_) => {
+            let _ = stream.write_all("Failed to get IP".as_bytes()).await;
+            return;
+        }
+    };
 
-    
-    let reader = maxminddb::Reader::open_readfile("./GeoCountry.mmdb").unwrap();
+    let country_code = geoip_reader
+        .lookup::<geoip2::Country>(ip)
+        .ok()
+        .and_then(|country| {
+            country
+                .and_then(|c| c.country)
+                .and_then(|c| c.iso_code.map(|s| s.to_string()))
+        });
 
-    if let Some(server) = geo_routing.route_request(country) {
-        let message = format!("Redirecting to: {}", server);
-        let _ = stream.write_all(message.as_bytes())
-            .await
-            .map_err(|ـ| "Failed to respond");
-    } else {
-        let _ = stream.write_all("No route available".as_bytes()).await;
+    match country_code {
+        Some(code) => {
+            println!("User from country: {}", code);
+            if let Some(server) = geo_routing.route_request(&code) {
+                let message = format!("Redirecting to: {}", server);
+                let _ = stream.write_all(message.as_bytes()).await;
+            } else {
+                let _ = stream.write_all(b"No server for your region").await;
+            }
+        }
+        None => {
+            let _ = stream.write_all("Could not determine country".as_bytes()).await;
+        }
     }
 }
 
-
 #[tokio::main]
 async fn main() {
-    let geo_routing = GeoRouting::new();
+    let geo_routing = Arc::new(GeoRouting::new());
+    let geoip_reader = Arc::new(
+        Reader::open_readfile("./GeoLite2-Country.mmdb").expect("Could not open GeoIP DB"),
+    );
+
     let listener = TcpListener::bind("0.0.0.0:8182")
         .await
         .expect("Failed to bind");
@@ -60,10 +85,11 @@ async fn main() {
 
     loop {
         let (stream, _) = listener.accept().await.unwrap();
-        let geo_routing = geo_routing.clone();
+        let geo_routing = Arc::clone(&geo_routing);
+        let geoip_reader = Arc::clone(&geoip_reader);
 
         tokio::spawn(async move {
-            handle_request(stream, &geo_routing).await;
+            handle_request(stream, geo_routing, geoip_reader).await;
         });
     }
 }
