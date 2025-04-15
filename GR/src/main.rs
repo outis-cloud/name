@@ -54,20 +54,25 @@ async fn handle_request(
                 .and_then(|c| c.iso_code.map(|s| s.to_string()))
         });
 
-    match country_code {
-        Some(code) => {
-            println!("User from country: {}", code);
-            if let Some(server) = geo_routing.route_request(&code) {
-                let message = format!("Redirecting to: {}", server);
-                let _ = stream.write_all(message.as_bytes()).await;
-            } else {
-                let _ = stream.write_all(b"No server for your region").await;
+        match country_code {
+            Some(code) => {
+                println!("User from country: {}", code);
+        
+                if code == "IR" {
+                    if let Some(server) = geo_routing.route_request(&code) {
+                        let message = format!("Redirecting to: {}", server);
+                        let _ = stream.write_all(message.as_bytes()).await;
+                        return;
+                    }
+                }
+        
+                let _ = stream.write_all("Welcome! You're connected to the default server.".as_bytes()).await;
+            }
+            None => {
+                let _ = stream.write_all("Could not determine country".as_bytes()).await;
             }
         }
-        None => {
-            let _ = stream.write_all("Could not determine country".as_bytes()).await;
-        }
-    }
+        
 }
 
 #[tokio::main]
