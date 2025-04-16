@@ -284,8 +284,6 @@ restore_zones() {
 }
 
 
-
-
 node2(){
 
     clear 

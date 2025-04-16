@@ -14,7 +14,3 @@ This script is a DNS management solution that installs and configures CoreDNS, a
 ```
 curl -sLO https://raw.githubusercontent.com/Guilt92/NameShift/main/run && sudo bash run
 ```
-
-#### 8. Monitoring & Analytics
-- [ ] Monitoring Traffic.
-- [ ] Add GeoIp ( Rust )
