@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 # Author:   OuTiS
 
 ORANGE=$(echo -ne '\e[38;5;214m')
@@ -11,7 +10,6 @@ ENDCOLOR=$(echo -ne '\e[0m')
 YELLOW=$(echo -ne '\033[0;33m') 
 PURPLE=$(echo -ne '\e[35m')        
 
-
 check_root()
 {
 	if [ "$EUID" -ne 0 ];then 
@@ -20,6 +18,7 @@ check_root()
 	fi
 }
 
+check_root
 
 docker_service_check(){
     status="$(systemctl is-active docker )"
@@ -30,7 +29,6 @@ docker_service_check(){
         exit 1
     fi
 }
-
 
 install_docker() {
     check_root
@@ -62,15 +60,12 @@ install_docker() {
     echo -e "${GREEN}All Docker components are installed and ready.${ENDCOLOR}"
 }
 
-
-
 resolv_conf(){
 echo  -e  "${GREEN}fix resolv.conf ${ENDCOLOR}"
 while true; do echo "nameserver 8.8.8.8" > resolv.conf ; sleep 2s; done&
 sleep 1
 clear 
 }
-
 
 config_docker(){
 while true; do echo "nameserver 8.8.8.8" > /etc/resolv.conf ; sleep 5; done&
@@ -87,8 +82,6 @@ EOL
 echo "$daemon" > /etc/docker/daemon.json
 }
 
-
-
 check_run_docker(){
 
 echo "${GREEN}Checking docker installation ${ENDCOLOR}"
@@ -103,3 +96,8 @@ fi
 
 }
 
+resolv_conf
+check_run_docker
+config_docker
+docker_service_check
+config_docker
