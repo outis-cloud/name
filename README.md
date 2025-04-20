@@ -1,16 +1,14 @@
 # NameShift: DNS Management Script
 
-This script is a DNS management solution that installs and configures CoreDNS, adds/removes DNS records, manages zones, and more.
+This script is a DNS management solution that installs and configures CoreDNS, PowerDns adds/removes DNS records, manages zones, and more.
 
-## Features
+## Features CoreDNS
 1. Install CoreDNS
 2. Add/Remove DNS records
-3. Add/Remove zones
-4. Backup/Restore zones
-5. Reload CoreDNS
+3. Backup/Restore zones
 
-# Usage
 
-```
-curl -sLO https://raw.githubusercontent.com/Guilt92/NameShift/main/run && sudo bash run
-```
+## Features PowerDns
+1. Install PowerDns
+2. Add/Remove DNS records
+3. Backup/Restore zones
