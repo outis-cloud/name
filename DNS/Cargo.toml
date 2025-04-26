@@ -1,0 +1,9 @@
+[package]
+name = "DNS"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+maxminddb = "0.26.0"
+trust-dns = "0.23.2"
+tokio = { version = "1", features = ["full"] }
