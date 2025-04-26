@@ -9,6 +9,8 @@ dependencies = [
  "maxminddb",
  "tokio",
  "trust-dns",
+ "trust-dns-client",
+ "trust-dns-proto",
 ]
 
 [[package]]

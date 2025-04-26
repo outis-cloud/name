@@ -7,3 +7,5 @@ edition = "2021"
 maxminddb = "0.26.0"
 trust-dns = "0.23.2"
 tokio = { version = "1", features = ["full"] }
+trust-dns-client = "0.23.2"
+trust-dns-proto = "0.23"
