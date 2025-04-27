@@ -96,8 +96,133 @@ fi
 
 }
 
+ZONES_DIR="$(pwd)/zones"
+NAMED_CONF="$(pwd)/named.conf"
+PDNS_CONF="$(pwd)/pdns.conf"
+
+check_files() {
+    if [ ! -d "$ZONES_DIR" ]; then
+        echo -e "${RED}Directory zones not found: $ZONES_DIR${ENDCOLOR}"
+        return 1
+    fi
+
+    if [ ! -f "$NAMED_CONF" ]; then
+        echo -e "${RED}File named.conf not found: $NAMED_CONF${ENDCOLOR}"
+        return 1
+    fi
+
+    if [ ! -f "$PDNS_CONF" ]; then
+        echo -e "${RED}File pdns.conf not found: $PDNS_CONF${ENDCOLOR}"
+        return 1
+    fi
+
+    return 0
+}
+
+create_docker_compose() {
+    cat <<EOF > docker-compose.yml
+version: '3.7'
+
+services:
+  pdns:
+    image: powerdns/pdns-auth-master
+    container_name: pdns
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+    volumes:
+      - ./zones:/var/lib/powerdns/zones
+      - ./named.conf:/etc/powerdns/named.conf
+      - ./pdns.conf:/etc/powerdns/pdns.conf
+    restart: always
+EOF
+
+    echo -e "${GREEN}docker-compose.yml file created successfully.${ENDCOLOR}"
+}
+
+start_docker_compose() {
+    echo -e "${BLUE}Starting container with Docker Compose...${ENDCOLOR}"
+    docker-compose up -d
+
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}PowerDNS container started successfully.${ENDCOLOR}"
+    else
+        echo -e "${RED}Error starting PowerDNS container.${ENDCOLOR}"
+        return 1
+    fi
+}
+
+restart_docker_container() {
+    CONTAINER_NAME="pdns"
+    
+    if [ "$(docker ps -q -f name=$CONTAINER_NAME)" ]; then
+        echo -e "${BLUE}Restarting the PowerDNS container...${ENDCOLOR}"
+        
+        docker restart $CONTAINER_NAME
+        
+        if [ $? -eq 0 ]; then
+            echo -e "${GREEN}PowerDNS container restarted successfully.${ENDCOLOR}"
+        else
+            echo -e "${RED}Error restarting PowerDNS container.${ENDCOLOR}"
+        fi
+    else
+        echo -e "${YELLOW}PowerDNS container is not running. Please start it first.${ENDCOLOR}"
+    fi
+}
+
+
 resolv_conf
 check_run_docker
 config_docker
 docker_service_check
 config_docker
+
+
+while true; do
+    sleep 0.6 
+    clear 
+    echo " "
+    echo -e "${BLUE}╔═══════════════════════════════════════════════════════════╗${ENDCOLOR}"
+    echo -e "                    ${GREEN} 🔥 NameShift 🔥   ${ENDCOLOR}"
+    echo -e "                 ${CYAN} https://github.com/Guilt92  ${ENDCOLOR}"
+    echo -e "${BLUE}╚═══════════════════════════════════════════════════════════╝${ENDCOLOR}"
+    echo " "
+    echo -e "${RED}============================ ${ENDCOLOR}"
+    echo -e "${RED}1.${ENDCOLOR}  Installing PowerDns ${ENDCOLOR}"
+    echo -e "${RED}2.${ENDCOLOR}  Add a new domain${ENDCOLOR}"
+    echo -e "${RED}3.${ENDCOLOR}  Multi Server${ENDCOLOR}"
+    echo -e "${RED}4.${ENDCOLOR}  Add a DNS record${ENDCOLOR}"
+    echo -e "${RED}5.${ENDCOLOR}  Remove a DNS record${ENDCOLOR}"
+    echo -e "${RED}6.${ENDCOLOR}  List all domains${ENDCOLOR}"
+    echo -e "${RED}7.${ENDCOLOR}  Reload PowerDns ${ENDCOLOR}"
+    echo -e "${RED}8.${ENDCOLOR}  Backup zones${ENDCOLOR}"
+    echo -e "${RED}9.${ENDCOLOR}  Restore zones${ENDCOLOR}"
+    echo -e "${RED}10.${ENDCOLOR} Check Format Db Domains ${ENDCOLOR}"
+    echo -e "${RED}11.${ENDCOLOR} Exit${ENDCOLOR}"
+    echo -e "${RED}============================ ${ENDCOLOR}"
+    echo " "
+
+    read -p "$(echo -e "${BLUE} Choose an option: ${ENDCOLOR}")" choice
+
+    case $choice in
+        1) install_pdn ; sleep 1; reload_pdns ;;
+        2) add_domain ; sleep 1 ;  service_pdns;;
+        3) multi ; sleep 2 ;  exit;;
+        4) add_record ;;
+        5) remove_record ;;
+        6) list_domains ;;
+        7) reload_pdns ;;
+        8) backup_zones ;;
+        9) restore_zones ;;
+        10) valid_file_db;;
+        11) exit ;;
+        *) echo -e "${RED}Invalid option. Please try again.${ENDCOLOR}" ; sleep 1.5 ;;
+    esac
+
+    read -p "$(echo -e "${BLUE}Press Enter to continue... ${ENDCOLOR}")" key
+done
+
+
+
+
+
