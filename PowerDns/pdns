@@ -283,6 +283,7 @@ while true; do
     echo -e "${RED}9.${ENDCOLOR}  Restore zones${ENDCOLOR}"
     echo -e "${RED}10.${ENDCOLOR} Check Format Db Domains ${ENDCOLOR}"
     echo -e "${RED}11.${ENDCOLOR} Exit${ENDCOLOR}"
+    echo -e "${RED}12.${ENDCOLOR} View Logs ${ENDCOLOR}" 
     echo -e "${RED}============================ ${ENDCOLOR}"
     echo " "
 
@@ -299,7 +300,8 @@ while true; do
         8) backup_zones ;;
         9) restore_zones ;;
         10) valid_file_db;;
-        11) exit ;;
+        11) view_logs ;;
+        12) exit ;;
         *) echo -e "${RED}Invalid option. Please try again.${ENDCOLOR}" ; sleep 1.5 ;;
     esac
 
