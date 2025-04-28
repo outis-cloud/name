@@ -7,12 +7,16 @@ use std::sync::Arc;
 use tokio::net::UdpSocket;
 use trust_dns_proto::op::{Message, ResponseCode};
 
+static GEOIP_DATA: &[u8] = include_bytes!("../GeoLite2-Country.mmdb");
+
 #[tokio::main]
 async fn main() {
-    let geo_db = Reader::open_readfile("GeoLite2-Country.mmdb").unwrap_or_else(|err| {
-        println!("Failed to open GeoLite2 database: {}", err);
-        exit(1);
-    });
+    let geo_db: Arc<Reader<Vec<u8>>> = Arc::new(
+        Reader::from_source(GEOIP_DATA.to_vec()).unwrap_or_else(|err| {
+            println!("Failed to load embedded GeoIP DB: {}", err);
+            exit(1);
+        }),
+    );
 
     let dns_servers: HashMap<String, &str> = vec![
         ("US".to_string(), "192.168.1.10:53"),
