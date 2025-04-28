@@ -38,6 +38,7 @@ install_docker() {
         containerd.io
         docker-buildx-plugin
         docker-compose-plugin
+        python3-pip
     )
 
     echo -e "${YELLOW}Checking and installing Docker components...${ENDCOLOR}"
@@ -119,7 +120,15 @@ check_files() {
     return 0
 }
 
+docker_compose_init(){
+pip install docker
+pip install 'requests>=2.32.0'
+
+}
+
+
 create_docker_compose() {
+    docker_compose_init
     cat <<EOF > docker-compose.yml
 
 services:
