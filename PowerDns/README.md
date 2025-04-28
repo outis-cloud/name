@@ -10,7 +10,7 @@ This directory contains the PowerDNS stack for **NameShift**, including three se
 
 - Docker & Docker Compose installed.
 - A `.env` file in this folder with:
-  ```ini
+```
 MYSQL_ROOT_PASSWORD= PASSWORD
 MYSQL_DATABASE=pdns_admin_guilt
 MYSQL_USER=pdns_admin
@@ -20,10 +20,11 @@ PDNS_API_KEY= API_KEY
 PDNS_ADMIN_USER=admin_panel
 PDNS_ADMIN_PASSWORD=admin_panel
 SECRET_KEY= SECRET_KEY=
-
-  ```
+```
 
 ## Usage
+
+```
 git clone https://github.com/Guilt92/NameShift.git
 cd NameShift/PowerDns
 ./pdns
