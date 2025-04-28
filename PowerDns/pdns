@@ -197,6 +197,13 @@ EOF
     echo -e "${GREEN}docker-compose.yml file created successfully.${ENDCOLOR}"
 }
 
+restart_docker_container_pdn(){
+export $(cat .env | xargs)
+docker-compose exec db bash -c "mysql -u root -p${MYSQL_ROOT_PASSWORD} powerdns < /schema.mysql.sql"
+docker-compose  restart
+
+}
+
 start_docker_compose() {
     echo -e "${BLUE}Starting container with Docker Compose...${ENDCOLOR}"
     docker-compose up -d
