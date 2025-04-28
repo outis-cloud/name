@@ -71,7 +71,6 @@ clear
 }
 
 config_docker(){
-while true; do echo "nameserver 8.8.8.8" > /etc/resolv.conf ; sleep 5; done&
 
 if [ -d /etc/docker/daemon.json ]; then
     echo -e "File daemon.json Is Exits "
@@ -89,7 +88,7 @@ check_run_docker(){
 
 echo "${GREEN}Checking docker installation ${ENDCOLOR}"
 if command -v docker &> /dev/null; then
-    echo "${GREEN}Docker installation found${ENDCOLOR}\n"
+    echo  "${GREEN}Docker installation found${ENDCOLOR}\n"
 else
     echo " ${RED}Docker installation not found. Please install docker. ${ENDCOLOR}\n"
         sleep 1
