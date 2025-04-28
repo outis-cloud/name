@@ -18,10 +18,10 @@ async fn main() {
         }),
     );
 
-    let dns_servers: HashMap<String, &str> = vec![
-        ("US".to_string(), "192.168.1.10:53"),
-        ("DE".to_string(), "192.168.1.11:53"),
-        ("DEFAULT".to_string(), "0.0.0.0:53"),
+    let dns_servers: HashMap<String, SocketAddr> = vec![
+        ("IR".to_string(), "8.8.8.8:53".parse().unwrap()),
+        ("DE".to_string(), "192.168.1.11:53".parse().unwrap()),
+        ("DEFAULT".to_string(), "1.1.1.1:53".parse().unwrap()),
     ]
     .into_iter()
     .collect();
@@ -72,7 +72,7 @@ async fn handle_client_request(
     client_addr: SocketAddr,
     socket: &Arc<UdpSocket>,
     geo_db: &Arc<Reader<Vec<u8>>>,
-    dns_servers: &Arc<HashMap<String, &str>>,
+    dns_servers: &Arc<HashMap<String, SocketAddr>>,
 ) {
     let ip = client_addr.ip();
     let country = get_country_from_ip(geo_db, ip).unwrap_or_else(|| "DEFAULT".to_string());
@@ -109,7 +109,7 @@ async fn handle_client_request(
     }
 }
 
-async fn forward_dns_request(request: &Message, server: &str) -> io::Result<Message> {
+async fn forward_dns_request(request: &Message, server: &SocketAddr) -> io::Result<Message> {
     let socket = UdpSocket::bind("0.0.0.0:0").await?;
     socket.connect(server).await?;
 
