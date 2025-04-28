@@ -255,12 +255,13 @@ restart_docker_container() {
     fi
 }
 
+config_init_docker(){
 resolv_conf
 check_run_docker
 config_docker
 docker_service_check
 config_docker
-
+}
 
 while true; do
     sleep 0.6 
