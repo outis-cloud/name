@@ -216,6 +216,27 @@ start_docker_compose() {
     fi
 }
 
+
+view_logs() {
+    clear
+    echo -e "${BLUE}==================== ${GREEN}PowerDNS Logs Viewer ${BLUE}====================${ENDCOLOR}"
+    echo -e "${CYAN}Press ${RED}Ctrl+C ${CYAN}to exit logs view.${ENDCOLOR}"
+    echo -e "${CYAN}Logs will be displayed for the pdns and pdns-admin containers.${ENDCOLOR}"
+    echo -e "${BLUE}==============================================${ENDCOLOR}"
+
+    echo -e "\n${GREEN}Displaying logs for pdns container...${ENDCOLOR}"
+    echo -e "${YELLOW}Press ${RED}Ctrl+C ${YELLOW}to stop viewing.${ENDCOLOR}"
+    docker logs -f pdns &
+
+    echo -e "\n${GREEN}Displaying logs for pdns-admin container...${ENDCOLOR}"
+    echo -e "${YELLOW}Press ${RED}Ctrl+C ${YELLOW}to stop viewing.${ENDCOLOR}"
+    docker logs -f pdns-admin &
+    
+    wait
+}
+
+
+
 restart_docker_container() {
     CONTAINER_NAME="pdns"
     
