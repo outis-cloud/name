@@ -216,25 +216,51 @@ start_docker_compose() {
     fi
 }
 
-
 view_logs() {
+    sleep 0.5
+    clear 
+    echo -e "${BLUE}==================== ${GREEN}PowerDNS Logs Viewer ${BLUE}====================${ENDCOLOR}"
+    echo -e "${CYAN}Which container logs do you want to view? (Enter the number):${ENDCOLOR}"
+    echo -e "1. ${YELLOW}pdns${ENDCOLOR} - PowerDNS container logs"
+    echo -e "2. ${PURPLE}pdns-admin${ENDCOLOR} - PowerDNS Admin container logs"
+    echo -e "3. ${RED}Exit${ENDCOLOR} - Exit logs viewer and return to menu"
+    
+    read -p "Enter your choice (1/2/3): " choice
+    case $choice in
+        1)
+            container="pdns"
+            ;;
+        2)
+            container="pdns-admin"
+            ;;
+        3)
+            echo -e "${CYAN}Exiting...${ENDCOLOR}"
+            return
+            ;;
+        *)
+            echo -e "${RED}Invalid choice, please try again.${ENDCOLOR}"
+            return
+            ;;
+    esac
+
+    trap 'echo -e "${CYAN}Returning to the main menu...${ENDCOLOR}"; return' SIGINT
+
     clear
     echo -e "${BLUE}==================== ${GREEN}PowerDNS Logs Viewer ${BLUE}====================${ENDCOLOR}"
-    echo -e "${CYAN}Press ${RED}Ctrl+C ${CYAN}to exit logs view.${ENDCOLOR}"
-    echo -e "${CYAN}Logs will be displayed for the pdns and pdns-admin containers.${ENDCOLOR}"
-    echo -e "${BLUE}==============================================${ENDCOLOR}"
+    echo -e "${CYAN}Displaying live logs for $container container (last 10 lines)...${ENDCOLOR}"
+    echo -e "${CYAN}Press ${RED}Ctrl+C ${CYAN} to exit logs view and return to the menu.${ENDCOLOR}"
 
-    echo -e "\n${GREEN}Displaying logs for pdns container...${ENDCOLOR}"
-    echo -e "${YELLOW}Press ${RED}Ctrl+C ${YELLOW}to stop viewing.${ENDCOLOR}"
-    docker logs -f pdns &
-
-    echo -e "\n${GREEN}Displaying logs for pdns-admin container...${ENDCOLOR}"
-    echo -e "${YELLOW}Press ${RED}Ctrl+C ${YELLOW}to stop viewing.${ENDCOLOR}"
-    docker logs -f pdns-admin &
-    
-    wait
+    while true; do
+        clear
+        docker logs --tail 10 -f $container | while IFS= read -r line; do
+            if [[ "$container" == "pdns" ]]; then
+                echo -e "${YELLOW}[pdns] ${line}${ENDCOLOR}"
+            else
+                echo -e "${PURPLE}[pdns-admin] ${line}${ENDCOLOR}"
+            fi
+        done
+    done
 }
-
 
 
 restart_docker_container() {
@@ -283,8 +309,8 @@ while true; do
     echo -e "${RED}8.${ENDCOLOR}  Backup zones${ENDCOLOR}"
     echo -e "${RED}9.${ENDCOLOR}  Restore zones${ENDCOLOR}"
     echo -e "${RED}10.${ENDCOLOR} Check Format Db Domains ${ENDCOLOR}"
-    echo -e "${RED}11.${ENDCOLOR} Exit${ENDCOLOR}"
-    echo -e "${RED}12.${ENDCOLOR} View Logs ${ENDCOLOR}" 
+    echo -e "${RED}11.${ENDCOLOR} View Logs${ENDCOLOR}"
+    echo -e "${RED}12.${ENDCOLOR} Exit ${ENDCOLOR}" 
     echo -e "${RED}============================ ${ENDCOLOR}"
     echo " "
 
