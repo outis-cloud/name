@@ -187,22 +187,38 @@ EOF
 }
 
 restart_docker_container_pdn(){
-export $(cat .env | xargs)
-docker-compose exec db bash -c "mysql -u root -p${MYSQL_ROOT_PASSWORD} powerdns < /schema.mysql.sql"
-docker-compose restart pdns
+    export $(grep -v '^#' .env | xargs)
+    docker-compose exec -T db bash <<EOF
+mysql -u root -p"\$MYSQL_ROOT_PASSWORD" <<SQL
+CREATE DATABASE IF NOT EXISTS powerdns;
+CREATE USER IF NOT EXISTS 'pdns'@'%' IDENTIFIED BY '\$MYSQL_PASSWORD';
+GRANT ALL PRIVILEGES ON powerdns.* TO 'pdns'@'%';
+FLUSH PRIVILEGES;
+SQL
+EOF
+    docker-compose exec db mysql -u root -p"$MYSQL_ROOT_PASSWORD" powerdns < /schema.mysql.sql
+    docker-compose restart pdns
+
 }
 
-start_docker_compose() {
-    echo -e "${BLUE}Starting container with Docker Compose...${ENDCOLOR}"
-    docker-compose up -d
+restart_docker_container_pdn() {
+    export $(grep -Ev '^\s*#' .env | xargs)
 
-    if [ $? -eq 0 ]; then
-        echo -e "${GREEN}PowerDNS container started successfully.${ENDCOLOR}"
-    else
-        echo -e "${RED}Error starting PowerDNS container.${ENDCOLOR}"
-        return 1
-    fi
+    docker-compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "
+        CREATE DATABASE IF NOT EXISTS powerdns;
+        CREATE USER IF NOT EXISTS 'pdns'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';
+        GRANT ALL PRIVILEGES ON powerdns.* TO 'pdns'@'%';
+        FLUSH PRIVILEGES;
+    "
+
+    docker-compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" powerdns < /schema.mysql.sql
+
+    docker-compose restart pdns
+
+    echo -e "${GREEN}✅ Database initialized and PowerDNS container restarted successfully.${ENDCOLOR}"
 }
+
+
 
 view_logs() {
     sleep 0.5
