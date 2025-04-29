@@ -11,15 +11,17 @@ This directory contains the PowerDNS stack for **NameShift**, including three se
 - Docker & Docker Compose installed.
 - A `.env` file in this folder with:
 ```
-MYSQL_ROOT_PASSWORD= PASSWORD
+Example:
+
+MYSQL_ROOT_PASSWORD=16f6de1a9d3b7d
 MYSQL_DATABASE=pdns_admin_guilt
 MYSQL_USER=pdns_admin
-MYSQL_PASSWORD=PASSWORD
-PDNS_DB_PASSWORD=PASSWORD
-PDNS_API_KEY= API_KEY
+MYSQL_PASSWORD=16f6de1a9d3b7d
+PDNS_DB_PASSWORD=16f6de1a9d3b7d
+PDNS_API_KEY=f!@6de1a@#9d3b$%7d
 PDNS_ADMIN_USER=admin_panel
 PDNS_ADMIN_PASSWORD=admin_panel
-SECRET_KEY= SECRET_KEY=
+SECRET_KEY= SECRET_KEY=16f6de1a9d3b7d
 ```
 
 ## Usage
