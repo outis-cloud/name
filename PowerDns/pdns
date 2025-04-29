@@ -72,11 +72,12 @@ install_docker() {
     echo -e "${GREEN}All Docker components are installed and ready.${ENDCOLOR}"
 }
 
-resolv_conf(){
-echo  -e  "${GREEN}fix resolv.conf ${ENDCOLOR}"
-while true; do echo "nameserver 8.8.8.8" > resolv.conf ; sleep 2s; done&
-sleep 1
-clear 
+resolv_conf() {
+  echo -e "${GREEN}fix resolv.conf ${ENDCOLOR}"
+  ( while true; do echo "nameserver 8.8.8.8" > resolv.conf; sleep 2s; done > /dev/null 2>&1 ) &
+  disown
+  sleep 1
+  clear
 }
 
 config_docker(){
@@ -123,7 +124,6 @@ pip install docker
 pip install 'requests>=2.32.0'
 
 }
-
 
 create_docker_compose() {
     docker_compose_init
@@ -196,7 +196,14 @@ EOF
 }
 
 start_docker_compose() {
-    docker-compose up -d
+    clear
+    echo -e "${YELLOW}Starting Docker Compose...${ENDCOLOR}"
+    if docker-compose up -d; then
+        echo -e "${GREEN} All containers started successfully.${ENDCOLOR}"
+    else
+        echo -e "${RED}Failed to start containers!${ENDCOLOR}"
+        exit 1
+    fi
 }
 
 restart_docker_container_pdn() {
