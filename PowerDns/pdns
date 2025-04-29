@@ -125,27 +125,24 @@ check_files() {
 }
 
 docker_compose_init(){
-install_docker 
 pip install docker
 pip install 'requests>=2.32.0'
 
 }
 
-
 create_docker_compose() {
   docker_compose_init
 
   cat <<EOF > docker-compose.yml
-
 services:
   db:
     image: mysql:5.7
     container_name: pdns-admin-db
     environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_DATABASE:       "${MYSQL_DATABASE}"
+      MYSQL_USER:           "${MYSQL_USER}"
+      MYSQL_PASSWORD:       "${MYSQL_PASSWORD}"
     volumes:
       - ./db-data:/var/lib/mysql
       - ./schema.mysql.sql:/schema.mysql.sql
@@ -158,10 +155,10 @@ services:
     depends_on:
       - db
     environment:
-      - gmysql-host=db
-      - gmysql-user=pdns
-      - gmysql-password=${PDNS_DB_PASSWORD}
-      - gmysql-dbname=powerdns
+      gmysql-host:    "db"
+      gmysql-user:    "pdns"
+      gmysql-password:"${PDNS_DB_PASSWORD}"
+      gmysql-dbname:  "powerdns"
     ports:
       - "53:53/udp"
       - "53:53/tcp"
@@ -178,15 +175,15 @@ services:
       - db
       - pdns
     environment:
-      - PDNS_API_URL=http://pdns:8088
-      - "PDNS_API_KEY=${PDNS_API_KEY}"
-      - PDNS_ADMIN_USER=${PDNS_ADMIN_USER}
-      - PDNS_ADMIN_PASSWORD=${PDNS_ADMIN_PASSWORD}
-      - DB_HOST=db:3306
-      - DB_NAME=${MYSQL_DATABASE}
-      - DB_USER=${MYSQL_USER}
-      - DB_PASSWORD=${MYSQL_PASSWORD}
-      - "SECRET_KEY=${SECRET_KEY}"
+      PDNS_API_URL:      "http://pdns:8088"
+      PDNS_API_KEY:      "${PDNS_API_KEY}"
+      PDNS_ADMIN_USER:   "${PDNS_ADMIN_USER}"
+      PDNS_ADMIN_PASSWORD:"${PDNS_ADMIN_PASSWORD}"
+      DB_HOST:           "db:3306"
+      DB_NAME:           "${MYSQL_DATABASE}"
+      DB_USER:           "${MYSQL_USER}"
+      DB_PASSWORD:       "${MYSQL_PASSWORD}"
+      SECRET_KEY:        "${SECRET_KEY}"
     ports:
       - "9191:80"
     volumes:
@@ -199,8 +196,9 @@ networks:
     external: true
 EOF
 
-    echo -e "${GREEN}docker-compose.yml file created successfully.${ENDCOLOR}"
+  echo -e "${GREEN} docker-compose.yml file created successfully.${ENDCOLOR}"
 }
+
 
 start_docker_compose() {
     clear
