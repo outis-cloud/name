@@ -21,7 +21,7 @@ async fn main() {
     let dns_servers: HashMap<String, SocketAddr> = vec![
         ("IR".to_string(), "8.8.8.8:53".parse().unwrap()),
         ("DE".to_string(), "192.168.1.11:53".parse().unwrap()),
-        ("DEFAULT".to_string(), "1.1.1.1:53".parse().unwrap()),
+        ("DEFAULT".to_string(), "8.8.8.8:53".parse().unwrap()),
     ]
     .into_iter()
     .collect();
@@ -102,6 +102,8 @@ async fn handle_client_request(
 
     match forward_dns_request(&request, dns_server).await {
         Ok(response) => {
+            let rcode = response.response_code();
+            println!("[handle] upstream RCODE = {:?}", rcode);
             println!(
                 "[handle] got {} answers from upstream",
                 response.answers().len()
