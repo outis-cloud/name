@@ -2,11 +2,6 @@
 
 # Author:   OuTiS
 
-set -a
-source .env
-set +a
-
-ORANGE=$(echo -ne '\e[38;5;214m')
 BLUE=$(echo -ne '\e[94m')
 RED=$(echo -ne '\e[31m')
 GREEN=$(echo -ne '\e[32m')
@@ -25,6 +20,17 @@ check_root()
 }
 
 check_root
+
+
+load_env() {
+  if [ -f .env ]; then
+    set -a
+    source .env
+    set +a
+  fi
+}
+
+load_env
 
 docker_service_check(){
     status="$(systemctl is-active docker )"
@@ -207,7 +213,6 @@ start_docker_compose() {
 }
 
 restart_docker_container_pdn() {
-    export $(grep -Ev '^\s*#' .env | xargs)
 
     docker-compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "
         CREATE DATABASE IF NOT EXISTS powerdns;
@@ -220,7 +225,7 @@ restart_docker_container_pdn() {
 
     docker-compose restart pdns
 
-    echo -e "${GREEN}✅ Database initialized and PowerDNS container restarted successfully.${ENDCOLOR}"
+    echo -e "${GREEN} Database initialized and PowerDNS container restarted successfully.${ENDCOLOR}"
 }
 
 
