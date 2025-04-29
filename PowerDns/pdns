@@ -2,6 +2,10 @@
 
 # Author:   OuTiS
 
+set -a
+source .env
+set +a
+
 ORANGE=$(echo -ne '\e[38;5;214m')
 BLUE=$(echo -ne '\e[94m')
 RED=$(echo -ne '\e[31m')
@@ -28,21 +32,23 @@ docker_service_check(){
         echo -e "${GREEN}Service Docker Is Runing ... ${ENDCOLOR}"
     else
         echo -e "${RED} Service Docker Not Runing "
-        exit 1
+        sleep 1
+        systemctl unmask docker
+        systemctl restart docker 
+        echo -e "${RED} Service Docker Is Runing "
     fi
 }
 
 install_docker() {
     check_root
     local packages=(
-         docker.io    
+         docker.io
          docker-doc
          docker-compose
          docker-compose-v2
          podman-docker
          containerd
          runc
-         docker-buildx-plugin
          python3-pip
     )
 
@@ -112,6 +118,7 @@ check_files() {
 }
 
 docker_compose_init(){
+install_docker 
 pip install docker
 pip install 'requests>=2.32.0'
 
@@ -188,6 +195,9 @@ EOF
     echo -e "${GREEN}docker-compose.yml file created successfully.${ENDCOLOR}"
 }
 
+start_docker_compose() {
+    docker-compose up -d
+}
 
 restart_docker_container_pdn() {
     export $(grep -Ev '^\s*#' .env | xargs)
