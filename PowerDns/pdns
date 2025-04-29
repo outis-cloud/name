@@ -35,12 +35,15 @@ docker_service_check(){
 install_docker() {
     check_root
     local packages=(
-        docker-ce
-        docker-ce-cli
-        containerd.io
-        docker-buildx-plugin
-        docker-compose-plugin
-        python3-pip
+         docker.io    
+         docker-doc
+         docker-compose
+         docker-compose-v2
+         podman-docker
+         containerd
+         runc
+         docker-buildx-plugin
+         python3-pip
     )
 
     echo -e "${YELLOW}Checking and installing Docker components...${ENDCOLOR}"
@@ -324,8 +327,8 @@ while true; do
     echo -e "${BLUE}╚═══════════════════════════════════════════════════════════╝${ENDCOLOR}"
     echo " "
     echo -e "${RED}============================ ${ENDCOLOR}"
-    echo -e "${RED}1.${ENDCOLOR}  Installing PowerDns ${ENDCOLOR}"
-    echo -e "${RED}2.${ENDCOLOR}  Reload PowerDns ${ENDCOLOR}"
+    echo -e "${RED}1.${ENDCOLOR} Installing PowerDns ${ENDCOLOR}"
+    echo -e "${RED}2.${ENDCOLOR} Reload PowerDns ${ENDCOLOR}"
     echo -e "${RED}3.${ENDCOLOR} View Logs${ENDCOLOR}"
     echo -e "${RED}4.${ENDCOLOR} Exit ${ENDCOLOR}" 
     echo -e "${RED}============================ ${ENDCOLOR}"
