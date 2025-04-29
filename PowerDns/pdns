@@ -46,15 +46,10 @@ docker_service_check(){
 }
 
 install_docker() {
-    check_root
     local packages=(
          docker.io
          docker-doc
-         docker-compose
          docker-compose-v2
-         podman-docker
-         containerd
-         runc
          python3-pip
     )
 
@@ -70,6 +65,8 @@ install_docker() {
                 exit 1
             fi
             echo -e "${GREEN}$pkg installed successfully.${ENDCOLOR}"
+            sleep 0.5 
+            clear
         else
             echo -e "${GREEN}$pkg is already installed.${ENDCOLOR}"
         fi
@@ -125,8 +122,9 @@ check_files() {
 }
 
 docker_compose_init(){
-pip install 'requests>=2.32.0'
-pip install requests_unixsocket
+pip install docker --force
+pip install 'requests>=2.32.0' --force
+pip install requests_unixsocket --force
 }
 
 create_docker_compose() {
@@ -203,7 +201,7 @@ EOF
 start_docker_compose() {
     clear
     echo -e "${YELLOW}Starting Docker Compose...${ENDCOLOR}"
-    if docker-compose up -d; then
+    if docker compose up -d; then
         echo -e "${GREEN} All containers started successfully.${ENDCOLOR}"
     else
         echo -e "${RED}Failed to start containers!${ENDCOLOR}"
@@ -213,16 +211,16 @@ start_docker_compose() {
 
 restart_docker_container_pdn() {
 
-    docker-compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "
+    docker compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "
         CREATE DATABASE IF NOT EXISTS powerdns;
         CREATE USER IF NOT EXISTS 'pdns'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';
         GRANT ALL PRIVILEGES ON powerdns.* TO 'pdns'@'%';
         FLUSH PRIVILEGES;
     "
 
-    docker-compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" powerdns < /schema.mysql.sql
+    docker compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" powerdns < /schema.mysql.sql
 
-    docker-compose restart pdns
+    docker compose restart pdns
 
     echo -e "${GREEN} Database initialized and PowerDNS container restarted successfully.${ENDCOLOR}"
 }
