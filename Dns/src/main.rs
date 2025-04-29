@@ -75,35 +75,44 @@ async fn handle_client_request(
     dns_servers: &Arc<HashMap<String, SocketAddr>>,
 ) {
     let ip = client_addr.ip();
-    let country = get_country_from_ip(geo_db, ip).unwrap_or_else(|| "DEFAULT".to_string());
-    println!("Request from IP: {}, Country: {}", ip, country);
+    let country = get_country_from_ip(geo_db, ip).unwrap_or_else(|| "DEFAULT".into());
+    let dns_server = dns_servers
+        .get(&country)
+        .or_else(|| dns_servers.get("DEFAULT"))
+        .unwrap();
+    println!(
+        "[handle] client={} country={} -> upstream={}",
+        client_addr, country, dns_server
+    );
 
     let request = match Message::from_vec(request_data) {
         Ok(msg) => msg,
         Err(err) => {
-            println!("Failed to parse DNS request: {}", err);
+            println!("[handle] parse error: {}", err);
             send_error_response(socket, client_addr, request_data, ResponseCode::FormErr).await;
             return;
         }
     };
 
-    let dns_server = dns_servers
-        .get(&country)
-        .unwrap_or_else(|| dns_servers.get("DEFAULT").unwrap());
+    println!(
+        "[handle] request id={} questions={}",
+        request.id(),
+        request.queries().len()
+    );
 
     match forward_dns_request(&request, dns_server).await {
         Ok(response) => {
+            println!(
+                "[handle] got {} answers from upstream",
+                response.answers().len()
+            );
             let response_data = response.to_vec().unwrap_or_default();
-            socket
-                .send_to(&response_data, client_addr)
-                .await
-                .unwrap_or_else(|err| {
-                    println!("Failed to send response to client: {}", err);
-                    0
-                });
+            if let Err(err) = socket.send_to(&response_data, client_addr).await {
+                println!("[handle] send to client failed: {}", err);
+            }
         }
         Err(err) => {
-            println!("DNS forwarding failed: {}", err);
+            println!("[handle] forwarding failed: {:?}", err);
             send_error_response(socket, client_addr, request_data, ResponseCode::ServFail).await;
         }
     }
@@ -114,10 +123,12 @@ async fn forward_dns_request(request: &Message, server: &SocketAddr) -> io::Resu
     socket.connect(server).await?;
 
     let request_data = request.to_vec()?;
+    println!("Sending request to {}...", server);
     socket.send(&request_data).await?;
 
     let mut buf = [0; 512];
     let len = socket.recv(&mut buf).await?;
+    println!("Received {} bytes from upstream", len);
     Message::from_vec(&buf[..len]).map_err(|e| io::Error::new(io::ErrorKind::Other, e))
 }
 
