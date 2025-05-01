@@ -46,13 +46,15 @@ docker_service_check(){
 }
 
 compose_install(){
+#VERSION=$(curl -s https://github.com/docker/compose/releases | grep -oP 'v[0-9]+\.[0-9]+\.[0-9]+' | grep -vE 'rc|beta|alpha' | sort -Vr | head -n 1 | sed 's/^v//')
+#DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+#mkdir -p $DOCKER_CONFIG/cli-plugins
+#curl -SL "https://github.com/docker/compose/releases/download/v${VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o "$DOCKER_CONFIG/cli-plugins/docker-compose"
+#chmod +x "$DOCKER_CONFIG/cli-plugins/docker-compose"
 
-    VERSION=$(curl -s https://github.com/docker/compose/releases | grep -oP 'v[0-9]+\.[0-9]+\.[0-9]+' | grep -vE 'rc|beta|alpha' | sort -Vr | head -n 1 | sed 's/^v//')
-
-DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
-mkdir -p $DOCKER_CONFIG/cli-plugins
-curl -SL "https://github.com/docker/compose/releases/download/v${VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o "$DOCKER_CONFIG/cli-plugins/docker-compose"
-chmod +x "$DOCKER_CONFIG/cli-plugins/docker-compose"
+mkdir -p ~/.docker/cli-plugins
+curl -SL https://github.com/docker/compose/releases/download/v2.35.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+ln -sf /usr/local/bin/docker-compose ~/.docker/cli-plugins/docker-compose
 
 }
 
