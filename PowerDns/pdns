@@ -21,16 +21,59 @@ check_root()
 
 check_root
 
+generate_pdns_conf() {
 
-load_env() {
   if [ -f .env ]; then
+    echo "${BLUE}Loading .env file...${ENDCOLOR}"
     set -a
     source .env
     set +a
+  else
+    echo "${RED}Error: .env not found${ENDCOLOR}"
+    return 1
   fi
+
+  missing_vars=0
+  for var in PDNS_DB_PASSWORD PDNS_API_KEY; do
+    if [ -z "${!var}" ]; then
+      echo "${RED}Missing environment variable: $var${ENDCOLOR}"
+      missing_vars=1
+    else
+      echo "${GREEN}$var loaded${ENDCOLOR}"
+    fi
+  done
+
+  if [ "$missing_vars" -ne 0 ]; then
+    echo "${RED}Aborting due to missing variables.${ENDCOLOR}"
+    return 1
+  fi
+
+  echo "${CYAN}Generating pdns.conf...${ENDCOLOR}"
+  cat > pdns.conf <<EOF
+launch=gmysql,geoip
+gmysql-host=db
+gmysql-user=pdns
+gmysql-password=${PDNS_DB_PASSWORD}
+gmysql-dbname=powerdns
+
+api=yes
+api-key=${PDNS_API_KEY}
+webserver=yes
+webserver-address=0.0.0.0
+webserver-port=8088
+webserver-allow-from=0.0.0.0/0,::/0
+
+cache-ttl=0
+query-cache-ttl=0
+loglevel=9
+log-dns-queries=yes
+log-dns-details=yes
+EOF
+
+  echo "${GREEN}pdns.conf generated successfully${ENDCOLOR}"
 }
 
-load_env
+generate_pdns_conf
 
 docker_service_check(){
     status="$(systemctl is-active docker )"
