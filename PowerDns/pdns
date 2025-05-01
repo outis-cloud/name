@@ -218,23 +218,29 @@ start_docker_compose() {
     fi
 }
 
-restart_docker_container_pdn() {
+wait_for_mysql() {
+ echo -e "${GREEN} Waiting for MySQL to be ready...${ENDCOLOR}"
+  until docker compose exec -T pdns-admin-db mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT 1" &>/dev/null; do
+    sleep 2
+  done
+   echo -e "${GREEN} MySQL is ready!${ENDCOLOR}"
+}
 
-    docker compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "
+restart_docker_container_pdn() {
+    wait_for_mysql	
+    docker compose exec -T pdns-admin-db mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "
         CREATE DATABASE IF NOT EXISTS powerdns;
         CREATE USER IF NOT EXISTS 'pdns'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';
         GRANT ALL PRIVILEGES ON powerdns.* TO 'pdns'@'%';
         FLUSH PRIVILEGES;
     "
 
-    docker compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" powerdns < ./schema.mysql.sql
+    docker compose exec -T pdns-admin-db mysql -u root -p"$MYSQL_ROOT_PASSWORD" powerdns < ./schema.mysql.sql
 
     docker compose restart pdns
 
     echo -e "${GREEN} Database initialized and PowerDNS container restarted successfully.${ENDCOLOR}"
 }
-
-
 
 view_logs() {
     sleep 0.5
