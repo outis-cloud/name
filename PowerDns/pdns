@@ -227,7 +227,7 @@ restart_docker_container_pdn() {
         FLUSH PRIVILEGES;
     "
 
-    docker compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" powerdns < /schema.mysql.sql
+    docker compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" powerdns < ./schema.mysql.sql
 
     docker compose restart pdns
 
