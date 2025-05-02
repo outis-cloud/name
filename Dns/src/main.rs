@@ -11,17 +11,17 @@ static GEOIP_DATA: &[u8] = include_bytes!("../GeoLite2-Country.mmdb");
 
 #[tokio::main]
 async fn main() {
-    let geo_db: Arc<Reader<Vec<u8>>> = Arc::new(
+     let geo_db: Arc<Reader<Vec<u8>>> = Arc::new(
         Reader::from_source(GEOIP_DATA.to_vec()).unwrap_or_else(|err| {
             println!("Failed to load embedded GeoIP DB: {}", err);
             exit(1);
         }),
     );
 
-    let dns_servers: HashMap<String, SocketAddr> = vec![
-        ("IR".to_string(), "8.8.8.8:53".parse().unwrap()),
-        ("DE".to_string(), "192.168.1.11:53".parse().unwrap()),
-        ("DEFAULT".to_string(), "8.8.8.8:53".parse().unwrap()),
+     let dns_servers: HashMap<String, SocketAddr> = vec![
+        ("IR".to_string(),      "8.8.8.8:53".parse().unwrap()),
+        ("DE".to_string(),      "1.1.1.1:53".parse().unwrap()),
+        ("DEFAULT".to_string(), "185.255.90.158:53".parse().unwrap()),
     ]
     .into_iter()
     .collect();
@@ -29,16 +29,15 @@ async fn main() {
     let geo_db = Arc::new(geo_db);
     let dns_servers = Arc::new(dns_servers);
 
-    let socket = UdpSocket::bind("0.0.0.0:53").await.unwrap_or_else(|err| {
+     let socket = UdpSocket::bind("0.0.0.0:53").await.unwrap_or_else(|err| {
         println!("Failed to bind socket: {}", err);
         exit(1);
     });
     let socket = Arc::new(socket);
 
-    let mut buf = [0; 512];
+     let mut buf = vec![0u8; 4096];
     loop {
-        let result = socket.recv_from(&mut buf).await;
-        match result {
+        match socket.recv_from(&mut buf).await {
             Ok((len, addr)) => {
                 let request_data = buf[..len].to_vec();
                 let socket = Arc::clone(&socket);
@@ -52,7 +51,6 @@ async fn main() {
             }
             Err(err) => {
                 println!("Failed to receive data: {}", err);
-                continue;
             }
         }
     }
@@ -74,42 +72,20 @@ async fn handle_client_request(
     geo_db: &Arc<Reader<Vec<u8>>>,
     dns_servers: &Arc<HashMap<String, SocketAddr>>,
 ) {
-    let ip = client_addr.ip();
-    let country = get_country_from_ip(geo_db, ip).unwrap_or_else(|| "DEFAULT".into());
+     let country = get_country_from_ip(geo_db, client_addr.ip()).unwrap_or_else(|| "DEFAULT".into());
     let dns_server = dns_servers
         .get(&country)
         .or_else(|| dns_servers.get("DEFAULT"))
         .unwrap();
+
     println!(
         "[handle] client={} country={} -> upstream={}",
         client_addr, country, dns_server
     );
 
-    let request = match Message::from_vec(request_data) {
-        Ok(msg) => msg,
-        Err(err) => {
-            println!("[handle] parse error: {}", err);
-            send_error_response(socket, client_addr, request_data, ResponseCode::FormErr).await;
-            return;
-        }
-    };
-
-    println!(
-        "[handle] request id={} questions={}",
-        request.id(),
-        request.queries().len()
-    );
-
-    match forward_dns_request(&request, dns_server).await {
-        Ok(response) => {
-            let rcode = response.response_code();
-            println!("[handle] upstream RCODE = {:?}", rcode);
-            println!(
-                "[handle] got {} answers from upstream",
-                response.answers().len()
-            );
-            let response_data = response.to_vec().unwrap_or_default();
-            if let Err(err) = socket.send_to(&response_data, client_addr).await {
+     match forward_dns_request_raw(request_data, dns_server).await {
+        Ok(response_bytes) => {
+             if let Err(err) = socket.send_to(&response_bytes, client_addr).await {
                 println!("[handle] send to client failed: {}", err);
             }
         }
@@ -120,18 +96,21 @@ async fn handle_client_request(
     }
 }
 
-async fn forward_dns_request(request: &Message, server: &SocketAddr) -> io::Result<Message> {
+async fn forward_dns_request_raw(
+    request_data: &[u8],
+    server: &SocketAddr,
+) -> io::Result<Vec<u8>> {
+     let mut buf = vec![0u8; 4096];
     let socket = UdpSocket::bind("0.0.0.0:0").await?;
     socket.connect(server).await?;
 
-    let request_data = request.to_vec()?;
-    println!("Sending request to {}...", server);
-    socket.send(&request_data).await?;
+    println!("Sending raw request to {}...", server);
+    socket.send(request_data).await?;
 
-    let mut buf = [0; 512];
     let len = socket.recv(&mut buf).await?;
     println!("Received {} bytes from upstream", len);
-    Message::from_vec(&buf[..len]).map_err(|e| io::Error::new(io::ErrorKind::Other, e))
+    buf.truncate(len);
+    Ok(buf)
 }
 
 async fn send_error_response(
@@ -140,7 +119,7 @@ async fn send_error_response(
     request_data: &[u8],
     code: ResponseCode,
 ) {
-    if let Ok(request) = Message::from_vec(request_data) {
+     if let Ok(request) = Message::from_vec(request_data) {
         let mut response = Message::new();
         response.set_id(request.id());
         response.set_response_code(code);
