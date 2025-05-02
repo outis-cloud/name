@@ -69,8 +69,8 @@ loglevel=9
 log-dns-queries=yes
 log-dns-details=yes
 EOF
-
-  echo "${GREEN}pdns.conf generated successfully${ENDCOLOR}"
+ sleep 1 
+ echo "${GREEN}pdns.conf generated successfully${ENDCOLOR}"
 }
 
 generate_pdns_conf
@@ -89,12 +89,6 @@ docker_service_check(){
 }
 
 compose_install(){
-#VERSION=$(curl -s https://github.com/docker/compose/releases | grep -oP 'v[0-9]+\.[0-9]+\.[0-9]+' | grep -vE 'rc|beta|alpha' | sort -Vr | head -n 1 | sed 's/^v//')
-#DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
-#mkdir -p $DOCKER_CONFIG/cli-plugins
-#curl -SL "https://github.com/docker/compose/releases/download/v${VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o "$DOCKER_CONFIG/cli-plugins/docker-compose"
-#chmod +x "$DOCKER_CONFIG/cli-plugins/docker-compose"
-
 mkdir -p ~/.docker/cli-plugins
 curl -SL https://github.com/docker/compose/releases/download/v2.35.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
 ln -sf /usr/local/bin/docker-compose ~/.docker/cli-plugins/docker-compose
@@ -373,6 +367,28 @@ restart_container() {
     fi
 }
 
+
+show_final_output() {
+    clear 
+    sleep 0.5
+    echo -e "${BLUE}[INFO]${ENDCOLOR} "
+    echo -e "\n${GREEN} PowerDNS & PowerDNS-Admin Setup Completed Successfully!${ENDCOLOR}\n"
+
+    SERVER_IP=$( hostname -I | awk '{print $1}')
+
+    echo -e "${CYAN} Access Details:${ENDCOLOR}"
+    echo -e "${YELLOW}----------------------------------------------------${ENDCOLOR}"
+    echo -e "${GREEN}PowerDNS-Admin:${ENDCOLOR}   http://$SERVER_IP:9191"
+    echo -e "${GREEN}MySQL Host:${ENDCOLOR}         pdns-mysql"
+    echo -e "${GREEN}MySQL Port:${ENDCOLOR}         3306"
+    echo -e "${GREEN}DNS Server Port:${ENDCOLOR}    53 (UDP/TCP)"
+    echo -e "${GREEN}Docker Network:${ENDCOLOR}    pdns-network"
+    echo -e "${YELLOW}----------------------------------------------------${ENDCOLOR}"
+
+    echo -e "\n${MAGENTA} You can login to PowerDNS-Admin and configure your zones, API tokens, and more.${ENDCOLOR}"
+}
+
+
 config_init_docker(){
 resolv_conf
 check_run_docker
@@ -388,7 +404,7 @@ compose_install
 create_docker_compose
 start_docker_compose
 restart_docker_container_pdn
-
+show_final_output
 }
 
 
