@@ -1,0 +1,17 @@
+FROM rust:latest as base
+WORKDIR /home/rust/
+FROM base as builder
+RUN rustc --version; cargo --version; rustup --version
+USER root
+COPY . .
+RUN  cargo build --release --locked --bin cdn-core
+FROM debian:stable-slim as final
+WORKDIR /home/rust/
+RUN apt-get update && apt-get install -y \
+  rm -rf /var/lib/apt/lists/* \
+  && update-ca-certificates
+
+COPY --from=builder /home/rust/target/release/Dns .
+EXPOSE 53
+ENTRYPOINT ["./Dns"]
+ 
