@@ -10,3 +10,4 @@ tokio = { version = "1", features = ["full"] }
 trust-dns-client = "0.23.2"
 trust-dns-proto = "0.23"
 clap = "4.5.37"
+dashmap = "6.1.0"
