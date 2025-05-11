@@ -1,18 +1,26 @@
-FROM rust:latest AS base
-WORKDIR /home/rust/
+FROM rust:latest AS planner
+WORKDIR /app
+RUN cargo install cargo-chef
+COPY Cargo.toml Cargo.lock ./
+RUN mkdir src && echo "fn main() {}" > src/main.rs
+RUN cargo chef prepare --recipe-path recipe.json
 
-FROM base AS builder
-RUN rustc --version; cargo --version; rustup --version
-USER root
+FROM rust:latest AS cacher
+WORKDIR /app
+RUN cargo install cargo-chef
+COPY --from=planner /app/recipe.json ./
+COPY Cargo.toml Cargo.lock ./
+RUN cargo chef cook --release --recipe-path recipe.json
+
+FROM rust:latest AS builder
+WORKDIR /app
+COPY --from=cacher /app/target ./target
 COPY . .
 RUN cargo build --release --locked --bin DNS
 
-FROM debian:stable-slim AS final
-WORKDIR /home/rust/
-
-COPY --from=builder /home/rust/target/release/DNS .
-
+FROM debian:stable-slim AS runtime
+WORKDIR /home/rust
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /app/target/release/DNS .
 EXPOSE 53/udp
-
 ENTRYPOINT ["./DNS"]
-
