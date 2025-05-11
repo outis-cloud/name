@@ -4,13 +4,14 @@ FROM base as builder
 RUN rustc --version; cargo --version; rustup --version
 USER root
 COPY . .
-RUN  cargo build --release --locked --bin Dns
+RUN  cargo build --release --locked --bin DNS
 FROM debian:stable-slim as final
 WORKDIR /home/rust/
 
 
-COPY --from=builder /home/rust/target/release/Dns .
+COPY --from=builder /home/rust/target/release/DNS .
 
 EXPOSE 53/udp
-ENTRYPOINT ["./Dns"]
+
+ENTRYPOINT ["./DNS"]
  
