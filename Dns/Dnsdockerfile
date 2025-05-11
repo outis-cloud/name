@@ -1,17 +1,18 @@
-FROM rust:latest as base
+FROM rust:latest AS base
 WORKDIR /home/rust/
-FROM base as builder
+
+FROM base AS builder
 RUN rustc --version; cargo --version; rustup --version
 USER root
 COPY . .
-RUN  cargo build --release --locked --bin DNS
-FROM debian:stable-slim as final
-WORKDIR /home/rust/
+RUN cargo build --release --locked --bin DNS
 
+FROM debian:stable-slim AS final
+WORKDIR /home/rust/
 
 COPY --from=builder /home/rust/target/release/DNS .
 
 EXPOSE 53/udp
 
 ENTRYPOINT ["./DNS"]
- 
+
