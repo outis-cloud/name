@@ -1,4 +1,6 @@
 #!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
 
 # Author:   OuTiS
 
@@ -76,22 +78,23 @@ EOF
 generate_pdns_conf
 
 docker_service_check(){
-    status="$(systemctl is-active docker )"
-    if [ "${status}" = "active" ]; then
-        echo -e "${GREEN}Service Docker Is Runing ... ${ENDCOLOR}"
+
+    if systemctl is-active --quiet docker; then
+      echo "Docker running"
     else
-        echo -e "${RED} Service Docker Not Runing "
-        sleep 1
-        systemctl unmask docker
-        systemctl restart docker 
-        echo -e "${GREEN} Service Docker Is Runing${ENDCOLOR} "
+      echo "Docker not running, attempting to start..."
+      systemctl unmask docker || true
+      systemctl start docker || { echo "Failed to start docker" >&2; exit 1; }
     fi
+
 }
 
 compose_install(){
-mkdir -p ~/.docker/cli-plugins
-curl -SL https://github.com/docker/compose/releases/download/v2.35.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
-ln -sf /usr/local/bin/docker-compose ~/.docker/cli-plugins/docker-compose
+
+  mkdir -p /usr/local/libexec/docker/cli-plugins
+  curl -fSL https://github.com/docker/compose/releases/download/v2.35.1/docker-compose-linux-x86_64 \
+    -o /usr/local/libexec/docker/cli-plugins/docker-compose
+  chmod +x /usr/local/libexec/docker/cli-plugins/docker-compose
 
 }
 
@@ -241,11 +244,36 @@ EOF
   echo -e "${GREEN} docker-compose.yml file created successfully.${ENDCOLOR}"
 }
 
+fix_port_53() {
+  echo -e "${CYAN}Checking port 53 usage...${ENDCOLOR}"
+
+  if ss -lntup | grep -q ':53 '; then
+    if ss -lntup | grep ':53 ' | grep -q systemd-resolve; then
+      echo -e "${YELLOW}Port 53 is in use by systemd-resolved. Fixing...${ENDCOLOR}"
+
+      systemctl stop systemd-resolved || {
+        echo -e "${RED}Failed to stop systemd-resolved${ENDCOLOR}"
+        exit 1
+      }
+
+      systemctl disable systemd-resolved >/dev/null 2>&1
+
+      echo -e "${GREEN}Port 53 released and resolv.conf fixed.${ENDCOLOR}"
+    else
+      echo -e "${RED}Port 53 is in use by another service:${ENDCOLOR}"
+      ss -lntup | grep ':53 '
+      exit 1
+    fi
+  else
+    echo -e "${GREEN}Port 53 is free.${ENDCOLOR}"
+  fi
+}
+
+
 
 start_docker_compose() {
+    chmod +x /usr/local/bin/docker-compose
     clear
-        echo -e "${YELLOW}Network pdns-network Creating ...${ENDCOLOR}"
-        docker network create pdns-network
         echo -e "${YELLOW}Starting Docker Compose...${ENDCOLOR}"
     if docker compose up -d; then
         echo -e "${GREEN} All containers started successfully.${ENDCOLOR}"
@@ -255,9 +283,17 @@ start_docker_compose() {
     fi
 }
 
+
+ensure_network() {
+  if ! docker network inspect pdns-network >/dev/null 2>&1; then
+    docker network create pdns-network || true
+  fi
+}
+
 wait_for_mysql() {
  echo -e "${GREEN} Waiting for MySQL to be ready...${ENDCOLOR}"
-  until docker compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT 1" &>/dev/null; do
+  # until docker compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT 1" &>/dev/null; do
+  until docker exec -i $(docker ps -q -f name=pdns-admin-db) mysqladmin ping -uroot -p"$MYSQL_ROOT_PASSWORD" --silent &>/dev/null; do
     sleep 2
   done
    echo -e "${GREEN} MySQL is ready!${ENDCOLOR}"
@@ -394,12 +430,13 @@ resolv_conf
 check_run_docker
 config_docker
 docker_service_check
-
+fix_port_53
 }
 
 install_pdns(){
 config_init_docker
 check_files
+ensure_network
 compose_install
 create_docker_compose
 start_docker_compose
