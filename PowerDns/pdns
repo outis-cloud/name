@@ -70,6 +70,7 @@ query-cache-ttl=0
 loglevel=9
 log-dns-queries=yes
 log-dns-details=yes
+
 EOF
  sleep 1 
  echo "${GREEN}pdns.conf generated successfully${ENDCOLOR}"
@@ -188,6 +189,10 @@ services:
       MYSQL_DATABASE: "${MYSQL_DATABASE}"
       MYSQL_USER: "${MYSQL_USER}"
       MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      retries: 5
     volumes:
       - ./db-data:/var/lib/mysql
       - ./schema.mysql.sql:/schema.mysql.sql
@@ -214,20 +219,24 @@ services:
       - pdns-network
 
   pdns-admin:
-    image: powerdnsadmin/pda-legacy:latest
-    container_name: pdns-admin
+    image: poweradmin/poweradmin:latest
+    container_name: poweradmin
     depends_on:
       - db
       - pdns
     environment:
+      DB_TYPE: mysql
+      DB_HOST: db
+      DB_USER: "${MYSQL_USER}"
+      DB_PASS: "${MYSQL_PASSWORD}"
+      DB_NAME: "${MYSQL_DATABASE}"
       PDNS_API_URL: "http://pdns:8088"
       PDNS_API_KEY: "${PDNS_API_KEY}"
-      PDNS_ADMIN_USER: "${PDNS_ADMIN_USER}"
-      PDNS_ADMIN_PASSWORD: "${PDNS_ADMIN_PASSWORD}"
-      DB_HOST: "db:3306"
-      DB_NAME: "${MYSQL_DATABASE}"
-      DB_USER: "${MYSQL_USER}"
-      DB_PASSWORD: "${MYSQL_PASSWORD}"
+      PA_API_ENABLED: "true"
+      PA_API_DOCS_ENABLED: "true"
+      DNS_NS1: ns1.yourdomain.com
+      DNS_NS2: ns2.yourdomain.com
+      DNS_HOSTMASTER: hostmaster@yourdomain.com
       SECRET_KEY: "${SECRET_KEY}"
     ports:
       - "9191:80"
@@ -270,7 +279,6 @@ fix_port_53() {
 }
 
 
-
 start_docker_compose() {
     chmod +x /usr/local/bin/docker-compose
     clear
@@ -302,10 +310,11 @@ wait_for_mysql() {
 restart_docker_container_pdn() {
     wait_for_mysql	
     docker compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "
-        CREATE DATABASE IF NOT EXISTS powerdns;
-        CREATE USER IF NOT EXISTS 'pdns'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';
-        GRANT ALL PRIVILEGES ON powerdns.* TO 'pdns'@'%';
-        FLUSH PRIVILEGES;
+      CREATE DATABASE IF NOT EXISTS powerdns;
+      CREATE USER IF NOT EXISTS 'pdns'@'%' IDENTIFIED BY '$PDNS_DB_PASSWORD';
+      GRANT ALL PRIVILEGES ON powerdns.* TO 'pdns'@'%';
+      FLUSH PRIVILEGES;
+
     "
 
     docker compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" powerdns < ./schema.mysql.sql
@@ -314,6 +323,7 @@ restart_docker_container_pdn() {
 
     echo -e "${GREEN} Database initialized and PowerDNS container restarted successfully.${ENDCOLOR}"
 }
+
 
 view_logs() {
     sleep 0.5
