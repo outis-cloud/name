@@ -316,8 +316,8 @@ fix_port_53() {
 
 
 start_docker_compose() {
-    chmod +x /usr/local/bin/docker-compose
-    clear
+    chmod +x /usr/local/bin/docker-compose    # Remove existing db-data to ensure clean MySQL initialization
+    rm -rf ./db-data    clear
         echo -e "${YELLOW}Starting Docker Compose...${ENDCOLOR}"
     if docker compose up -d; then
         echo -e "${GREEN} All containers started successfully.${ENDCOLOR}"
@@ -357,7 +357,7 @@ wait_for_mysql() {
 
 restart_docker_container_pdn() {
     wait_for_mysql	
-    docker exec -i pdns-admin-db mysql -uroot -p"$MYSQL_ROOT_PASSWORD"  -e"
+    docker compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e"
       CREATE DATABASE IF NOT EXISTS powerdns;
       CREATE USER IF NOT EXISTS 'pdns'@'%' IDENTIFIED BY '$PDNS_DB_PASSWORD';
       GRANT ALL PRIVILEGES ON powerdns.* TO 'pdns'@'%';
