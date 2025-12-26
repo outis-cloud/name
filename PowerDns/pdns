@@ -178,7 +178,7 @@ check_files() {
 
 create_docker_compose() {
 
-  cat <<'EOF' > docker-compose.yml
+  cat <<EOF > docker-compose.yml
 
 services:
   db:
@@ -203,7 +203,8 @@ services:
     image: powerdns/pdns-auth-master
     container_name: pdns
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       gmysql-host: "db"
       gmysql-user: "pdns"
@@ -222,8 +223,8 @@ services:
     image: poweradmin/poweradmin:latest
     container_name: poweradmin
     depends_on:
-      - db
-      - pdns
+       db:
+         condition: service_healthy
     environment:
       DB_TYPE: mysql
       DB_HOST: db
@@ -299,23 +300,33 @@ ensure_network() {
 }
 
 wait_for_mysql() {
- echo -e "${GREEN} Waiting for MySQL to be ready...${ENDCOLOR}"
-  # until docker compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT 1" &>/dev/null; do
-  until docker exec -i $(docker ps -q -f name=pdns-admin-db) mysqladmin ping -uroot -p"$MYSQL_ROOT_PASSWORD" --silent &>/dev/null; do
-    sleep 2
-  done
-   echo -e "${GREEN} MySQL is ready!${ENDCOLOR}"
+    echo -e "${GREEN}Waiting for MySQL to be ready...${ENDCOLOR}"
+    while true; do
+        DB_CONTAINER=$(docker ps -q -f name=pdns-admin-db)
+        if [ -z "$DB_CONTAINER" ]; then
+            echo -e "${YELLOW}MySQL container not found, waiting...${ENDCOLOR}"
+            sleep 2
+            continue
+        fi
+        if docker exec -i "$DB_CONTAINER" mysqladmin ping -uroot -p"$MYSQL_ROOT_PASSWORD" --silent &>/dev/null; then
+            echo -e "${GREEN}MySQL is ready!${ENDCOLOR}"
+            break
+        else
+            echo -e "${YELLOW}MySQL not ready yet, retrying...${ENDCOLOR}"
+            sleep 2
+        fi
+    done
 }
+
 
 restart_docker_container_pdn() {
     wait_for_mysql	
-    docker compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "
+    docker exec -i pdns-admin-db mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -e "
       CREATE DATABASE IF NOT EXISTS powerdns;
       CREATE USER IF NOT EXISTS 'pdns'@'%' IDENTIFIED BY '$PDNS_DB_PASSWORD';
       GRANT ALL PRIVILEGES ON powerdns.* TO 'pdns'@'%';
       FLUSH PRIVILEGES;
-
-    "
+  "
 
     docker compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" powerdns < ./schema.mysql.sql
 
