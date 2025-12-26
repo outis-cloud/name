@@ -357,7 +357,7 @@ wait_for_mysql() {
 
 restart_docker_container_pdn() {
     wait_for_mysql	
-    docker compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e"
+    docker compose exec db mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e"
       CREATE DATABASE IF NOT EXISTS powerdns;
       CREATE USER IF NOT EXISTS 'pdns'@'%' IDENTIFIED BY '$PDNS_DB_PASSWORD';
       GRANT ALL PRIVILEGES ON powerdns.* TO 'pdns'@'%';
