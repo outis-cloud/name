@@ -24,6 +24,37 @@ check_root()
 
 check_root
 
+generate_env() {
+  if [ ! -f .env ]; then
+    echo "${BLUE}Generating .env file from .env.example...${ENDCOLOR}"
+    cp .env.example .env
+    # Generate random passwords
+    if command -v openssl >/dev/null 2>&1; then
+      MYSQL_ROOT_PASSWORD=$(openssl rand -hex 12)
+      MYSQL_PASSWORD=$(openssl rand -hex 12)
+      PDNS_DB_PASSWORD=$(openssl rand -hex 12)
+      PDNS_API_KEY=$(openssl rand -hex 16)
+      SECRET_KEY=$(openssl rand -hex 16)
+    else
+      # Fallback using /dev/urandom
+      MYSQL_ROOT_PASSWORD=$(head -c 12 /dev/urandom | xxd -p | tr -d '\n')
+      MYSQL_PASSWORD=$(head -c 12 /dev/urandom | xxd -p | tr -d '\n')
+      PDNS_DB_PASSWORD=$(head -c 12 /dev/urandom | xxd -p | tr -d '\n')
+      PDNS_API_KEY=$(head -c 16 /dev/urandom | xxd -p | tr -d '\n')
+      SECRET_KEY=$(head -c 16 /dev/urandom | xxd -p | tr -d '\n')
+    fi
+    # Replace placeholders
+    sed -i "s/^MYSQL_ROOT_PASSWORD=.*/MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD/" .env
+    sed -i "s/^MYSQL_PASSWORD=.*/MYSQL_PASSWORD=$MYSQL_PASSWORD/" .env
+    sed -i "s/^PDNS_DB_PASSWORD=.*/PDNS_DB_PASSWORD=$PDNS_DB_PASSWORD/" .env
+    sed -i "s/^PDNS_API_KEY=.*/PDNS_API_KEY=$PDNS_API_KEY/" .env
+    sed -i "s/^SECRET_KEY=.*/SECRET_KEY=$SECRET_KEY/" .env
+    echo "${GREEN}.env file generated.${ENDCOLOR}"
+  fi
+}
+
+generate_env
+
 generate_pdns_conf() {
 
   if [ -f .env ]; then
@@ -31,13 +62,15 @@ generate_pdns_conf() {
     set -a
     source .env
     set +a
+    PA_ADMIN_USERNAME=$PDNS_ADMIN_USER
+    PA_ADMIN_PASSWORD=$PDNS_ADMIN_PASSWORD
   else
     echo "${RED}Error: .env not found${ENDCOLOR}"
     return 1
   fi
 
   missing_vars=0
-  for var in PDNS_DB_PASSWORD PDNS_API_KEY; do
+  for var in MYSQL_ROOT_PASSWORD MYSQL_DATABASE MYSQL_USER MYSQL_PASSWORD PDNS_DB_PASSWORD PDNS_API_KEY PDNS_ADMIN_USER PDNS_ADMIN_PASSWORD SECRET_KEY; do
     if [ -z "${!var}" ]; then
       echo "${RED}Missing environment variable: $var${ENDCOLOR}"
       missing_vars=1
@@ -57,7 +90,7 @@ launch=gmysql,geoip
 gmysql-host=db
 gmysql-user=pdns
 gmysql-password=${PDNS_DB_PASSWORD}
-gmysql-dbname=powerdns
+gmysql-dbname=${MYSQL_DATABASE}
 
 api=yes
 api-key=${PDNS_API_KEY}
@@ -210,8 +243,8 @@ services:
         condition: service_healthy
     environment:
       gmysql-host: db
-      gmysql-user: ${MYSQL_USER}
-      gmysql-password: ${MYSQL_PASSWORD}
+      gmysql-user: pdns
+      gmysql-password: ${PDNS_DB_PASSWORD}
       gmysql-dbname: ${MYSQL_DATABASE}
     ports:
       - "53:53/udp"
