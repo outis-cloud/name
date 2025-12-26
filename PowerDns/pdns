@@ -4,6 +4,7 @@ IFS=$'\n\t'
 
 # Author:   OuTiS
 
+
 BLUE=$(echo -ne '\e[94m')
 RED=$(echo -ne '\e[31m')
 GREEN=$(echo -ne '\e[32m')
@@ -185,17 +186,19 @@ services:
     image: mysql:5.7
     container_name: pdns-admin-db
     environment:
-      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
-      MYSQL_DATABASE: "${MYSQL_DATABASE}"
-      MYSQL_USER: "${MYSQL_USER}"
-      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
-      interval: 5s
-      retries: 5
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 15s
+      timeout: 10s
+      retries: 40      
+      start_period: 60s
     volumes:
       - ./db-data:/var/lib/mysql
-      - ./schema.mysql.sql:/schema.mysql.sql
+      - ./schema.mysql.sql:/docker-entrypoint-initdb.d/schema.mysql.sql
     networks:
       - pdns-network
 
@@ -206,10 +209,10 @@ services:
       db:
         condition: service_healthy
     environment:
-      gmysql-host: "db"
-      gmysql-user: "pdns"
-      gmysql-password: "${PDNS_DB_PASSWORD}"
-      gmysql-dbname: "powerdns"
+      gmysql-host: db
+      gmysql-user: ${MYSQL_USER}
+      gmysql-password: ${MYSQL_PASSWORD}
+      gmysql-dbname: ${MYSQL_DATABASE}
     ports:
       - "53:53/udp"
       - "53:53/tcp"
@@ -223,32 +226,31 @@ services:
     image: poweradmin/poweradmin:latest
     container_name: poweradmin
     depends_on:
-       db:
-         condition: service_healthy
+      db:
+        condition: service_healthy
     environment:
       DB_TYPE: mysql
       DB_HOST: db
-      DB_USER: "${MYSQL_USER}"
-      DB_PASS: "${MYSQL_PASSWORD}"
-      DB_NAME: "${MYSQL_DATABASE}"
-      PDNS_API_URL: "http://pdns:8088"
-      PDNS_API_KEY: "${PDNS_API_KEY}"
-      PA_API_ENABLED: "true"
-      PA_API_DOCS_ENABLED: "true"
-      DNS_NS1: ns1.yourdomain.com
-      DNS_NS2: ns2.yourdomain.com
-      DNS_HOSTMASTER: hostmaster@yourdomain.com
-      SECRET_KEY: "${SECRET_KEY}"
+      DB_NAME: ${MYSQL_DATABASE}
+      DB_USER: ${MYSQL_USER}
+      DB_PASS: ${MYSQL_PASSWORD}
+
+      PA_CREATE_ADMIN: "1"
+      PA_ADMIN_USERNAME: ${PA_ADMIN_USERNAME}
+      PA_ADMIN_PASSWORD: ${PA_ADMIN_PASSWORD}
+
+      PDNS_API_URL: http://pdns:8088
+      PDNS_API_KEY: ${PDNS_API_KEY}
+
+      SECRET_KEY: ${SECRET_KEY}
     ports:
       - "9191:80"
-    volumes:
-      - ./pdns-admin-config:/etc/pdns-admin
     networks:
       - pdns-network
 
 networks:
   pdns-network:
-    external: true
+
 EOF
 
   echo -e "${GREEN} docker-compose.yml file created successfully.${ENDCOLOR}"
@@ -300,6 +302,7 @@ ensure_network() {
 }
 
 wait_for_mysql() {
+    echo -e "MYSQL_ROOT_PASSWORD is: '$MYSQL_ROOT_PASSWORD'"
     echo -e "${GREEN}Waiting for MySQL to be ready...${ENDCOLOR}"
     while true; do
         DB_CONTAINER=$(docker ps -q -f name=pdns-admin-db)
@@ -321,14 +324,14 @@ wait_for_mysql() {
 
 restart_docker_container_pdn() {
     wait_for_mysql	
-    docker exec -i pdns-admin-db mysql -uroot -p"$MYSQL_ROOT_PASSWORD" -e "
+    docker exec -i pdns-admin-db mysql -uroot -p"$MYSQL_ROOT_PASSWORD"  -e"
       CREATE DATABASE IF NOT EXISTS powerdns;
       CREATE USER IF NOT EXISTS 'pdns'@'%' IDENTIFIED BY '$PDNS_DB_PASSWORD';
       GRANT ALL PRIVILEGES ON powerdns.* TO 'pdns'@'%';
       FLUSH PRIVILEGES;
   "
 
-    docker compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" powerdns < ./schema.mysql.sql
+    docker compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD"  --force  powerdns < ./schema.mysql.sql
 
     docker compose restart pdns
 
@@ -436,7 +439,7 @@ show_final_output() {
     echo -e "${CYAN} Access Details:${ENDCOLOR}"
     echo -e "${YELLOW}----------------------------------------------------${ENDCOLOR}"
     echo -e "${GREEN}PowerDNS-Admin:${ENDCOLOR}   http://$SERVER_IP:9191"
-    echo -e "${GREEN}MySQL Host:${ENDCOLOR}         pdns-mysql"
+    echo -e "${GREEN}MySQL Host:${ENDCOLOR}         db"
     echo -e "${GREEN}MySQL Port:${ENDCOLOR}         3306"
     echo -e "${GREEN}DNS Server Port:${ENDCOLOR}    53 (UDP/TCP)"
     echo -e "${GREEN}Docker Network:${ENDCOLOR}    pdns-network"
